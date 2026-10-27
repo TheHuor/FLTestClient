@@ -1,0 +1,131 @@
+<Window x:Class="FLTestClient.Gui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:FLTestClient.Gui.Views"
+        Title="FLTestClient · Fleet Control" Icon="Assets/FLTestClient.ico" Width="1440" Height="900" MinWidth="1100" MinHeight="680"
+        WindowStartupLocation="CenterScreen" Background="{DynamicResource WindowBackground}"
+        Foreground="{DynamicResource TextPrimary}" FontFamily="Segoe UI" FontSize="13">
+    <Window.Resources>
+        <Style x:Key="StatChip" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource PanelBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="14,4" />
+            <Setter Property="Margin" Value="0,0,10,0" />
+            <Setter Property="MinWidth" Value="84" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header: logo, live figures, server, theme and language -->
+        <Border Background="{DynamicResource HeaderBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,0,0,1"
+                Padding="20,12">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Width="176">
+                    <Image Source="{StaticResource LogoMark}" Width="42" Height="42" Margin="0,0,10,0"
+                           RenderOptions.BitmapScalingMode="HighQuality" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="FLTESTCLIENT" FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="15"
+                                   Foreground="{DynamicResource TextPrimary}" />
+                        <TextBlock Text="FLEET CONTROL" FontFamily="{StaticResource HeadingFont}" FontSize="10"
+                                   Foreground="{DynamicResource Accent}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Style="{StaticResource StatChip}" Padding="12,6" ToolTip="{DynamicResource Header.ServerTip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="{DynamicResource TextMuted}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                <Setter Property="Fill" Value="{DynamicResource Success}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="{Binding ServerDisplay}" FontFamily="{StaticResource MonoFont}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <Button Command="{Binding ToggleLanguageCommand}" Padding="10,6" Width="46" ToolTip="{DynamicResource Header.LanguageTip}">
+                        <TextBlock Text="{Binding LanguageCode}" FontFamily="{StaticResource HeadingFont}" FontWeight="SemiBold" />
+                    </Button>
+                    <Button Command="{Binding ToggleThemeCommand}" Margin="0" Padding="10,6" ToolTip="{DynamicResource Header.ThemeTip}">
+                        <TextBlock Text="{Binding ThemeIcon}" Style="{StaticResource Icon}" FontSize="16" />
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Style="{StaticResource StatChip}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding OnlineCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Accent}" />
+                            <TextBlock Text="{DynamicResource Stat.Online}" Style="{StaticResource StatLabel}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatChip}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding InSpaceCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Success}" />
+                            <TextBlock Text="{DynamicResource Stat.InSpace}" Style="{StaticResource StatLabel}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatChip}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding DockedCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource TextPrimary}" />
+                            <TextBlock Text="{DynamicResource Stat.Docked}" Style="{StaticResource StatLabel}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatChip}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding FailedCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Danger}" />
+                            <TextBlock Text="{DynamicResource Stat.Errors}" Style="{StaticResource StatLabel}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatChip}" ToolTip="{DynamicResource Header.TimeLagTip}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding TimeLagCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Warning}" />
+                            <TextBlock Text="{DynamicResource Stat.TimeLags}" Style="{StaticResource StatLabel}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Navigation and pages -->
+        <TabControl Grid.Row="1" Style="{StaticResource NavTabControl}">
+            <TabItem Header="{DynamicResource Nav.Fleet}" Tag="&#xE716;">
+                <views:FleetView />
+            </TabItem>
+            <TabItem Header="{DynamicResource Nav.Comms}" Tag="&#xE8BD;">
+                <views:CommsView />
+            </TabItem>
+            <TabItem Header="{DynamicResource Nav.Command}" Tag="&#xE756;">
+                <views:CommandView />
+            </TabItem>
+            <TabItem Header="{DynamicResource Nav.ServerLog}" Tag="&#xE9D9;">
+                <views:ServerLogView />
+            </TabItem>
+            <TabItem Header="{DynamicResource Nav.Settings}" Tag="&#xE713;">
+                <views:SettingsView />
+            </TabItem>
+        </TabControl>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="{DynamicResource HeaderBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,1,0,0"
+                Padding="20,6">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding AppVersion, Mode=OneTime}" Foreground="{DynamicResource TextMuted}" FontSize="12" Margin="16,0,0,0" />
+                <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TextMuted}" FontSize="12" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

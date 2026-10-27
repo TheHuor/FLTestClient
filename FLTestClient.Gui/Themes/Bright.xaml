@@ -1,0 +1,29 @@
+<!-- Bright palette: same keys as Dark.xaml, cool steel blue with a strong accent. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <LinearGradientBrush x:Key="WindowBackground" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#EEF3FA" Offset="0" />
+        <GradientStop Color="#E3ECF7" Offset="0.6" />
+        <GradientStop Color="#D7E3F2" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="HeaderBackground" Color="#F2FFFFFF" />
+    <SolidColorBrush x:Key="NavBackground" Color="#B3FFFFFF" />
+    <SolidColorBrush x:Key="PanelBackground" Color="#E6FFFFFF" />
+    <SolidColorBrush x:Key="PanelBorder" Color="#C4D3E6" />
+    <SolidColorBrush x:Key="InputBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="InputBorder" Color="#AFC3DB" />
+    <SolidColorBrush x:Key="RowBackground" Color="#00FFFFFF" />
+    <SolidColorBrush x:Key="RowAltBackground" Color="#0A0A6FB8" />
+    <SolidColorBrush x:Key="RowHover" Color="#1A0A6FB8" />
+    <SolidColorBrush x:Key="RowSelected" Color="#330A6FB8" />
+    <SolidColorBrush x:Key="TextPrimary" Color="#132238" />
+    <SolidColorBrush x:Key="TextMuted" Color="#5B6F88" />
+    <SolidColorBrush x:Key="Accent" Color="#0A6FB8" />
+    <SolidColorBrush x:Key="AccentSoft" Color="#1F0A6FB8" />
+    <SolidColorBrush x:Key="AccentText" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Warning" Color="#C77700" />
+    <SolidColorBrush x:Key="Success" Color="#138A4B" />
+    <SolidColorBrush x:Key="Danger" Color="#D12F3A" />
+    <SolidColorBrush x:Key="Special" Color="#7A3FD6" />
+    <SolidColorBrush x:Key="ScrollThumb" Color="#A9BCD4" />
+</ResourceDictionary>

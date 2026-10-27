@@ -1,0 +1,89 @@
+<!--
+  FLTestClient logo: a Freelancer-style fighter seen from above inside a hexagonal HUD badge. The cockpit
+  is a bot visor with two glowing eyes and the nose carries an antenna with signal arcs, so the mark reads
+  as "space sim" and "bot" at once. Fixed colours with its own dark badge, so it works on both themes.
+  Single source: used by the window header and rendered into the application icon (make-icon.ps1).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DrawingImage x:Key="LogoMark">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <!-- Fixed 64 x 64 canvas so that every size scales the same way. -->
+                <GeometryDrawing Brush="Transparent" Geometry="M0,0 H64 V64 H0 Z" />
+
+                <!-- Hexagonal badge -->
+                <GeometryDrawing Geometry="M32,2.5 L57.5,17.25 L57.5,46.75 L32,61.5 L6.5,46.75 L6.5,17.25 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#13284A" Offset="0" />
+                            <GradientStop Color="#060D1A" Offset="1" />
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#3FD0FF" Thickness="2" LineJoin="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+
+                <!-- Inner HUD ring segments -->
+                <GeometryDrawing Geometry="M12,24 A21,21 0 0 1 22,13 M42,13 A21,21 0 0 1 52,24 M52,40 A21,21 0 0 1 42,51 M22,51 A21,21 0 0 1 12,40">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#553FD0FF" Thickness="1.2" StartLineCap="Round" EndLineCap="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+
+                <!-- Engine glow -->
+                <GeometryDrawing Geometry="M32,45 m-4.5,0 a4.5,7 0 1 0 9,0 a4.5,7 0 1 0 -9,0">
+                    <GeometryDrawing.Brush>
+                        <RadialGradientBrush GradientOrigin="0.5,0.2" Center="0.5,0.3" RadiusX="0.6" RadiusY="0.7">
+                            <GradientStop Color="#FFFFE2A8" Offset="0" />
+                            <GradientStop Color="#CCFFB547" Offset="0.45" />
+                            <GradientStop Color="#00FF8A1F" Offset="1" />
+                        </RadialGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+
+                <!-- Fighter hull with swept wings -->
+                <GeometryDrawing Geometry="M32,11 L37,27 L50,40 L49,44 L38,39.5 L35.5,45 L28.5,45 L26,39.5 L15,44 L14,40 L27,27 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#EAF4FF" Offset="0" />
+                            <GradientStop Color="#9FBAD6" Offset="0.6" />
+                            <GradientStop Color="#5E7C9E" Offset="1" />
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#0B1A33" Thickness="0.8" LineJoin="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+
+                <!-- Wing stripes in accent colour -->
+                <GeometryDrawing Brush="#3FD0FF" Geometry="M40.5,33 L47.5,40 L46.8,41.6 L39.6,36 Z M23.5,33 L16.5,40 L17.2,41.6 L24.4,36 Z" />
+
+                <!-- Bot visor (cockpit) -->
+                <GeometryDrawing Brush="#04101F" Geometry="M26.5,24.5 L37.5,24.5 L38.5,31 L25.5,31 Z">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#3FD0FF" Thickness="0.9" LineJoin="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+
+                <!-- Bot eyes -->
+                <GeometryDrawing Brush="#3FD0FF" Geometry="M29.5,27.8 m-1.6,0 a1.6,1.6 0 1 0 3.2,0 a1.6,1.6 0 1 0 -3.2,0 M34.5,27.8 m-1.6,0 a1.6,1.6 0 1 0 3.2,0 a1.6,1.6 0 1 0 -3.2,0" />
+                <GeometryDrawing Brush="#E8FBFF" Geometry="M29.9,27.3 m-0.55,0 a0.55,0.55 0 1 0 1.1,0 a0.55,0.55 0 1 0 -1.1,0 M34.9,27.3 m-0.55,0 a0.55,0.55 0 1 0 1.1,0 a0.55,0.55 0 1 0 -1.1,0" />
+
+                <!-- Antenna with signal arcs -->
+                <GeometryDrawing Geometry="M32,11 L32,9">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#3FD0FF" Thickness="1.2" StartLineCap="Round" EndLineCap="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#3FD0FF" Geometry="M32,8.3 m-1.4,0 a1.4,1.4 0 1 0 2.8,0 a1.4,1.4 0 1 0 -2.8,0" />
+                <GeometryDrawing Geometry="M28.6,6.6 A4,4 0 0 0 28.6,10 M35.4,6.6 A4,4 0 0 1 35.4,10">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#AA3FD0FF" Thickness="1" StartLineCap="Round" EndLineCap="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+</ResourceDictionary>

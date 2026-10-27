@@ -1,0 +1,176 @@
+<!--
+  English UI texts (default language and fallback). de.xaml uses the same keys; a key missing there
+  falls back to this file because App.ApplyLanguage always keeps English merged underneath.
+  Texts with {0} placeholders are formatted by Loc.T in the view models.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <!-- Header -->
+    <sys:String x:Key="Stat.Online">ONLINE</sys:String>
+    <sys:String x:Key="Stat.InSpace">IN SPACE</sys:String>
+    <sys:String x:Key="Stat.Docked">DOCKED</sys:String>
+    <sys:String x:Key="Stat.Errors">ERRORS</sys:String>
+    <sys:String x:Key="Stat.TimeLags">TIME LAGS</sys:String>
+    <sys:String x:Key="Header.ServerTip">Server (see Settings)</sys:String>
+    <sys:String x:Key="Header.ThemeTip">Dark / bright theme</sys:String>
+    <sys:String x:Key="Header.LanguageTip">Language: English / Deutsch</sys:String>
+    <sys:String x:Key="Header.TimeLagTip">Time lag entries in the server log (enable following)</sys:String>
+
+    <!-- Navigation -->
+    <sys:String x:Key="Nav.Fleet">Fleet</sys:String>
+    <sys:String x:Key="Nav.Comms">Comms</sys:String>
+    <sys:String x:Key="Nav.Command">Command</sys:String>
+    <sys:String x:Key="Nav.ServerLog">Server log</sys:String>
+    <sys:String x:Key="Nav.Settings">Settings</sys:String>
+
+    <!-- Fleet -->
+    <sys:String x:Key="Fleet.Title">Fleet</sys:String>
+    <sys:String x:Key="Fleet.Subtitle">Start, select and control bots. Multi-select with Ctrl/Shift.</sys:String>
+    <sys:String x:Key="Fleet.NewBots">NEW BOTS</sys:String>
+    <sys:String x:Key="Fleet.Selection">SELECTED</sys:String>
+    <sys:String x:Key="Fleet.Count">COUNT</sys:String>
+    <sys:String x:Key="Fleet.From">FROM NO.</sys:String>
+    <sys:String x:Key="Fleet.AutoStart">Auto launch</sys:String>
+    <sys:String x:Key="Fleet.AutoStartTip">Launch into space again 3 s after every docking</sys:String>
+    <sys:String x:Key="Fleet.StartBots">Start bots</sys:String>
+    <sys:String x:Key="Fleet.Launch">Launch</sys:String>
+    <sys:String x:Key="Fleet.LaunchTip">Launch the selected bots into space</sys:String>
+    <sys:String x:Key="Fleet.Distribute">Distribute</sys:String>
+    <sys:String x:Key="Fleet.DistributeTip">Beam the selected bots in space to the target bases (see Command) via FLHook</sys:String>
+    <sys:String x:Key="Fleet.Reconnect">Reconnect</sys:String>
+    <sys:String x:Key="Fleet.ReconnectTip">Reconnect the selected bots</sys:String>
+    <sys:String x:Key="Fleet.Disconnect">Disconnect</sys:String>
+    <sys:String x:Key="Fleet.DisconnectTip">Log out and remove the selected bots</sys:String>
+    <sys:String x:Key="Fleet.SelectAll">Select all</sys:String>
+    <sys:String x:Key="Fleet.LogoutAll">Log out all</sys:String>
+    <sys:String x:Key="Fleet.LogoutAllTip">Log out all bots cleanly</sys:String>
+    <sys:String x:Key="Col.Nr">NO.</sys:String>
+    <sys:String x:Key="Col.Pilot">PILOT</sys:String>
+    <sys:String x:Key="Col.Status">STATUS</sys:String>
+    <sys:String x:Key="Col.System">SYSTEM</sys:String>
+    <sys:String x:Key="Col.Base">BASE</sys:String>
+    <sys:String x:Key="Col.Ship">SHIP</sys:String>
+    <sys:String x:Key="Col.Credits">CREDITS</sys:String>
+    <sys:String x:Key="Col.Ping">PING</sys:String>
+    <sys:String x:Key="Col.Unknown">UNKN.</sys:String>
+    <sys:String x:Key="Fleet.EmptyTitle">No bots deployed yet</sys:String>
+    <sys:String x:Key="Fleet.EmptyText">Check server and password in Settings, then press “Start bots”.</sys:String>
+    <sys:String x:Key="Fleet.Activity">ACTIVITY</sys:String>
+    <sys:String x:Key="Fleet.SelectedOnly">selection only</sys:String>
+    <sys:String x:Key="Common.Clear">Clear</sys:String>
+    <sys:String x:Key="Fleet.DockTarget">TARGET BASE</sys:String>
+    <sys:String x:Key="Fleet.Dock">Dock</sys:String>
+    <sys:String x:Key="Fleet.DockTip">Dock the selected bots in space at the chosen base (FLHook beam, works across systems)</sys:String>
+
+    <!-- Settings: new characters and behaviour -->
+    <sys:String x:Key="Set.NewChars">NEW CHARACTERS</sys:String>
+    <sys:String x:Key="Set.Faction">FACTION</sys:String>
+    <sys:String x:Key="Set.StartBase">START BASE</sys:String>
+    <sys:String x:Key="Set.Package">SHIP PACKAGE</sys:String>
+    <sys:String x:Key="Set.Pilot">PILOT</sys:String>
+    <sys:String x:Key="Set.NewCharHint">Nicknames from DATA\CHARACTERS\newcharacter.ini; only used when a bot has no character yet.</sys:String>
+    <sys:String x:Key="Set.Behaviour">BEHAVIOUR · APPLIES LIVE</sys:String>
+    <sys:String x:Key="Set.CircleFlight">Fly a circle in space</sys:String>
+    <sys:String x:Key="Set.Radius">RADIUS (M)</sys:String>
+    <sys:String x:Key="Set.Speed">SPEED (M/S)</sys:String>
+    <sys:String x:Key="Set.SessionCycle">Log out and in periodically</sys:String>
+    <sys:String x:Key="Set.OnlineMin">ONLINE MIN (S)</sys:String>
+    <sys:String x:Key="Set.OnlineMax">ONLINE MAX (S)</sys:String>
+    <sys:String x:Key="Set.Offline">OFFLINE (S)</sys:String>
+    <sys:String x:Key="Set.ChatInterval">CHAT SCRIPT EVERY (S, 0 = OFF)</sys:String>
+    <sys:String x:Key="Set.ChatScript">CHAT SCRIPT (ONE LINE PER MESSAGE)</sys:String>
+    <sys:String x:Key="Set.BehaviourHint">Circle, cycles and chat script create realistic load: movement, logins/logouts with saving, and plugin commands.</sys:String>
+
+    <!-- Comms -->
+    <sys:String x:Key="Comms.Title">Comms</sys:String>
+    <sys:String x:Key="Comms.Subtitle">Universe chat of the bots. Send text or FLHook commands (e.g. /help) to the selected or all bots.</sys:String>
+    <sys:String x:Key="Comms.Quick">QUICK</sys:String>
+    <sys:String x:Key="Comms.Selected">Selected</sys:String>
+    <sys:String x:Key="Comms.AllBots">All bots</sys:String>
+    <sys:String x:Key="Comms.Send">Send</sys:String>
+
+    <!-- Command -->
+    <sys:String x:Key="Cmd.Title">Command</sys:String>
+    <sys:String x:Key="Cmd.Subtitle">FLHook admin interface: player list, rehash, kick, and distributing bots across systems via beam.</sys:String>
+    <sys:String x:Key="Cmd.Connection">CONNECTION</sys:String>
+    <sys:String x:Key="Cmd.Host">FLHOOK HOST</sys:String>
+    <sys:String x:Key="Cmd.Port">PORT</sys:String>
+    <sys:String x:Key="Cmd.Password">ADMIN PASSWORD</sys:String>
+    <sys:String x:Key="Cmd.FromIni">from flhook.ini</sys:String>
+    <sys:String x:Key="Cmd.FromIniTip">Take Pass0 from the flhook.ini set in Settings</sys:String>
+    <sys:String x:Key="Cmd.Commands">COMMANDS</sys:String>
+    <sys:String x:Key="Cmd.PlayerList">Player list</sys:String>
+    <sys:String x:Key="Cmd.Rehash">rehash</sys:String>
+    <sys:String x:Key="Cmd.RehashTip">Reload flhook.ini without restarting the server</sys:String>
+    <sys:String x:Key="Cmd.KickSelected">Kick selection</sys:String>
+    <sys:String x:Key="Cmd.CommandTip">Any FLHook admin command</sys:String>
+    <sys:String x:Key="Cmd.Run">Run</sys:String>
+    <sys:String x:Key="Cmd.Distribute">DISTRIBUTE</sys:String>
+    <sys:String x:Key="Cmd.DistributeHint">Target bases, one per line, assigned in turn. Only bots in space can be beamed; with auto launch they launch again afterwards.</sys:String>
+    <sys:String x:Key="Cmd.DistributeAll">Distribute all</sys:String>
+    <sys:String x:Key="Cmd.DistributeSelected">Distribute selection</sys:String>
+    <sys:String x:Key="Cmd.Console">CONSOLE</sys:String>
+
+    <!-- Server log -->
+    <sys:String x:Key="Log.Title">Server log</sys:String>
+    <sys:String x:Key="Log.Subtitle">Follow FLHook.log live. Time lags (frame over 1 s), kicks, cheat notices and errors are highlighted and counted.</sys:String>
+    <sys:String x:Key="Log.PathTip">Path of flhook_logs\FLHook.log</sys:String>
+    <sys:String x:Key="Log.Follow">Follow</sys:String>
+    <sys:String x:Key="Log.ImportantOnly">important only</sys:String>
+    <sys:String x:Key="Log.TimeLags">TIME LAGS</sys:String>
+    <sys:String x:Key="Log.Kicks">KICKS / DISCONNECTS</sys:String>
+    <sys:String x:Key="Log.Cheats">CHEAT NOTICES</sys:String>
+    <sys:String x:Key="Log.Errors">ERRORS</sys:String>
+    <sys:String x:Key="Log.ResetCounters">Reset counters</sys:String>
+
+    <!-- Settings -->
+    <sys:String x:Key="Set.Title">Settings</sys:String>
+    <sys:String x:Key="Set.Subtitle">Server, password and prefixes are locked while bots are running (“Log out all” unlocks them). Passwords are not saved.</sys:String>
+    <sys:String x:Key="Set.Server">SERVER</sys:String>
+    <sys:String x:Key="Set.Address">ADDRESS (LAN IP)</sys:String>
+    <sys:String x:Key="Set.Port">PORT</sys:String>
+    <sys:String x:Key="Set.SessionPassword">SESSION PASSWORD</sys:String>
+    <sys:String x:Key="Set.LoopbackHint">FLServer does not listen on 127.0.0.1 – use the address of the network adapter.</sys:String>
+    <sys:String x:Key="Set.Identity">BOT IDENTITY</sys:String>
+    <sys:String x:Key="Set.AccountPrefix">ACCOUNT PREFIX (fltest → fltest-001)</sys:String>
+    <sys:String x:Key="Set.NamePrefix">NAME PREFIX (TestBot → TestBot01)</sys:String>
+    <sys:String x:Key="Set.AutoLaunch">Launch automatically after docking</sys:String>
+    <sys:String x:Key="Set.Paths">PATHS</sys:String>
+    <sys:String x:Key="Set.DataDir">DATA FOLDER (universe.ini for names)</sys:String>
+    <sys:String x:Key="Set.FlhookIni">FLHOOK.INI (admin password)</sys:String>
+    <sys:String x:Key="Set.FlhookLog">FLHOOK.LOG (server log)</sys:String>
+    <sys:String x:Key="Set.Appearance">APPEARANCE</sys:String>
+    <sys:String x:Key="Set.DarkTheme">Dark theme</sys:String>
+    <sys:String x:Key="Set.ThemeHint">Theme and language can also be switched in the top right corner.</sys:String>
+    <sys:String x:Key="Set.Language">LANGUAGE</sys:String>
+
+    <!-- Messages from the view model ({0} = placeholder) -->
+    <sys:String x:Key="Msg.Ready">Ready.</sys:String>
+    <sys:String x:Key="Msg.System">System</sys:String>
+    <sys:String x:Key="Msg.Hint">Hint</sys:String>
+    <sys:String x:Key="Msg.UniverseLoaded">universe.ini loaded: {0} bases</sys:String>
+    <sys:String x:Key="Msg.UniverseFailed">universe.ini not loaded ({0}); names stay as hashes</sys:String>
+    <sys:String x:Key="Msg.BotsConnecting">connecting {0} bot(s) starting at no. {1}</sys:String>
+    <sys:String x:Key="Msg.AllLoggedOut">all bots logged out</sys:String>
+    <sys:String x:Key="Msg.ActionDone">{0}: {1} bot(s)</sys:String>
+    <sys:String x:Key="Act.Launch">launch</sys:String>
+    <sys:String x:Key="Act.Reconnect">reconnect</sys:String>
+    <sys:String x:Key="Act.Disconnect">disconnect</sys:String>
+    <sys:String x:Key="Msg.NoSelection">No bots selected – choose “All bots” or select bots in the fleet.</sys:String>
+    <sys:String x:Key="Msg.ChatToAll">→ all</sys:String>
+    <sys:String x:Key="Msg.ChatToSome">→ {0} bot(s)</sys:String>
+    <sys:String x:Key="Msg.PasswordLoaded">admin password taken from flhook.ini</sys:String>
+    <sys:String x:Key="Msg.NoPass0">no Pass0 in flhook.ini</sys:String>
+    <sys:String x:Key="Msg.IniUnreadable">flhook.ini not readable: {0}</sys:String>
+    <sys:String x:Key="Msg.AdminFailed">admin connection failed: {0}</sys:String>
+    <sys:String x:Key="Msg.Distribute">Distribute</sys:String>
+    <sys:String x:Key="Msg.NoBases">no target bases entered</sys:String>
+    <sys:String x:Key="Msg.NoBotInSpace">no selected bot is in space</sys:String>
+    <sys:String x:Key="Msg.SkippedNotInSpace">{0} bot(s) not in space, skipped</sys:String>
+    <sys:String x:Key="Msg.Distributing">distributing {0} bot(s) to {1} bases</sys:String>
+    <sys:String x:Key="Msg.FileNotFound">file not found: {0}</sys:String>
+    <sys:String x:Key="Msg.Dock">Dock</sys:String>
+    <sys:String x:Key="Msg.Docking">docking {0} bot(s) at {1}</sys:String>
+    <sys:String x:Key="Msg.Following">following {0} – new lines only</sys:String>
+</ResourceDictionary>

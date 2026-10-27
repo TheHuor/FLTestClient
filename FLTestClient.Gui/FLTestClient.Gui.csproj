@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>FLTestClientGui</AssemblyName>
+    <RootNamespace>FLTestClient.Gui</RootNamespace>
+    <!-- Generated from Assets/Logo.xaml by Assets/make-icon.ps1. -->
+    <ApplicationIcon>Assets\FLTestClient.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\FLTestClient.ico" />
+    <None Include="Assets\make-icon.ps1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FLTestClient.Core\FLTestClient.Core.csproj" />
+  </ItemGroup>
+
+</Project>

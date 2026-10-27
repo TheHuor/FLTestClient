@@ -1,0 +1,201 @@
+<UserControl x:Class="FLTestClient.Gui.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:gui="clr-namespace:FLTestClient.Gui">
+    <UserControl.Resources>
+        <Style x:Key="SettingsCard" TargetType="Border" BasedOn="{StaticResource Card}">
+            <Setter Property="Width" Value="380" />
+            <Setter Property="Margin" Value="0,0,14,14" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+        <Style x:Key="Field" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+    </UserControl.Resources>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+            <TextBlock Text="{DynamicResource Set.Title}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{DynamicResource Set.Subtitle}" Style="{StaticResource Muted}" />
+        </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <WrapPanel>
+                <!-- Server -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel IsEnabled="{Binding CanEditConnection}">
+                        <TextBlock Text="{DynamicResource Set.Server}" Style="{StaticResource CardTitle}" />
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="90" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource Set.Address}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{DynamicResource Set.Port}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding Port}" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.SessionPassword}" Style="{StaticResource FieldLabel}" />
+                            <PasswordBox gui:Behaviors.BoundPassword="{Binding Password}" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Muted}" Text="{DynamicResource Set.LoopbackHint}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Bot identity -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel IsEnabled="{Binding CanEditConnection}">
+                        <TextBlock Text="{DynamicResource Set.Identity}" Style="{StaticResource CardTitle}" />
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.AccountPrefix}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding AccountPrefix}" />
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.NamePrefix}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding NamePrefix}" />
+                        </StackPanel>
+                        <CheckBox Content="{DynamicResource Set.AutoLaunch}" IsChecked="{Binding AutoLaunch}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- New characters (newcharacter.ini) -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel IsEnabled="{Binding CanEditConnection}">
+                        <TextBlock Text="{DynamicResource Set.NewChars}" Style="{StaticResource CardTitle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="{DynamicResource Set.Faction}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding Faction}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Style="{StaticResource Field}">
+                                <TextBlock Text="{DynamicResource Set.StartBase}" Style="{StaticResource FieldLabel}" />
+                                <ComboBox ItemsSource="{Binding BaseList}" Text="{Binding NewCharBase, UpdateSourceTrigger=PropertyChanged}"
+                                          IsEditable="True" IsTextSearchEnabled="True" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="{DynamicResource Set.Package}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding Package}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Style="{StaticResource Field}">
+                                <TextBlock Text="{DynamicResource Set.Pilot}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding Pilot}" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Style="{StaticResource Muted}" Text="{DynamicResource Set.NewCharHint}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Behaviour, applied to running bots immediately -->
+                <Border Style="{StaticResource SettingsCard}" Width="460">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource Set.Behaviour}" Style="{StaticResource CardTitle}" />
+
+                        <CheckBox Content="{DynamicResource Set.CircleFlight}" IsChecked="{Binding CircleFlight}" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12" IsEnabled="{Binding CircleFlight}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource Set.Radius}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding CircleRadius}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{DynamicResource Set.Speed}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding CircleSpeed}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox Content="{DynamicResource Set.SessionCycle}" IsChecked="{Binding SessionCycle}" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12" IsEnabled="{Binding SessionCycle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource Set.OnlineMin}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding OnlineMinSeconds}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{DynamicResource Set.OnlineMax}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding OnlineMaxSeconds}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="{DynamicResource Set.Offline}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding OfflineSeconds}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.ChatInterval}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ChatIntervalSeconds}" Width="120" HorizontalAlignment="Left" />
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.ChatScript}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ChatScript}" AcceptsReturn="True" Height="90" VerticalScrollBarVisibility="Auto"
+                                     FontFamily="{StaticResource MonoFont}" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Muted}" Text="{DynamicResource Set.BehaviourHint}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Paths -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource Set.Paths}" Style="{StaticResource CardTitle}" />
+                        <StackPanel Style="{StaticResource Field}" IsEnabled="{Binding CanEditConnection}">
+                            <TextBlock Text="{DynamicResource Set.DataDir}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding DataDirectory}" />
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.FlhookIni}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding FlhookIni}" />
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.FlhookLog}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ServerLogPath}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Appearance and language -->
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource Set.Appearance}" Style="{StaticResource CardTitle}" />
+                        <CheckBox Content="{DynamicResource Set.DarkTheme}" IsChecked="{Binding IsDarkTheme}" Margin="0,0,0,14" />
+                        <TextBlock Text="{DynamicResource Set.Language}" Style="{StaticResource FieldLabel}" />
+                        <Border BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="6" Padding="2" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton Style="{StaticResource SegmentButton}" Content="English" GroupName="Language"
+                                             IsChecked="{Binding IsGerman, Converter={x:Static gui:InverseBool.Instance}}" />
+                                <RadioButton Style="{StaticResource SegmentButton}" Content="Deutsch" GroupName="Language"
+                                             IsChecked="{Binding IsGerman}" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0" Text="{DynamicResource Set.ThemeHint}" />
+                    </StackPanel>
+                </Border>
+            </WrapPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

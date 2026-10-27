@@ -1,0 +1,29 @@
+<!-- Dark palette: Freelancer-style HUD (deep space blue, cyan accent). -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <LinearGradientBrush x:Key="WindowBackground" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#050912" Offset="0" />
+        <GradientStop Color="#0A1426" Offset="0.55" />
+        <GradientStop Color="#0D1A33" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="HeaderBackground" Color="#CC08111F" />
+    <SolidColorBrush x:Key="NavBackground" Color="#99070E1A" />
+    <SolidColorBrush x:Key="PanelBackground" Color="#B30E1A2E" />
+    <SolidColorBrush x:Key="PanelBorder" Color="#1F3A5C" />
+    <SolidColorBrush x:Key="InputBackground" Color="#0A1424" />
+    <SolidColorBrush x:Key="InputBorder" Color="#24446A" />
+    <SolidColorBrush x:Key="RowBackground" Color="#00000000" />
+    <SolidColorBrush x:Key="RowAltBackground" Color="#0D3FD0FF" />
+    <SolidColorBrush x:Key="RowHover" Color="#1A3FD0FF" />
+    <SolidColorBrush x:Key="RowSelected" Color="#333FD0FF" />
+    <SolidColorBrush x:Key="TextPrimary" Color="#D6E4F5" />
+    <SolidColorBrush x:Key="TextMuted" Color="#7F93AD" />
+    <SolidColorBrush x:Key="Accent" Color="#3FD0FF" />
+    <SolidColorBrush x:Key="AccentSoft" Color="#263FD0FF" />
+    <SolidColorBrush x:Key="AccentText" Color="#03121F" />
+    <SolidColorBrush x:Key="Warning" Color="#FFB547" />
+    <SolidColorBrush x:Key="Success" Color="#4CE38A" />
+    <SolidColorBrush x:Key="Danger" Color="#FF5A5F" />
+    <SolidColorBrush x:Key="Special" Color="#B47CFF" />
+    <SolidColorBrush x:Key="ScrollThumb" Color="#2D4C72" />
+</ResourceDictionary>

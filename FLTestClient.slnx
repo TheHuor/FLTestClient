@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="FLTestClient.Cli/FLTestClient.Cli.csproj" />
+  <Project Path="FLTestClient.Core/FLTestClient.Core.csproj" />
+  <Project Path="FLTestClient.Gui/FLTestClient.Gui.csproj" />
+</Solution>

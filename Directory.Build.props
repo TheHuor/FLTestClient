@@ -1,0 +1,34 @@
+<Project>
+
+  <!-- Shared settings for core, command line and GUI. -->
+  <PropertyGroup>
+    <!-- DirectPlay structures and handles use the 32-bit layout (like Freelancer itself). -->
+    <PlatformTarget>x86</PlatformTarget>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- Generate XML documentation; missing comments on public members fail the build (CS1591). -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <WarningsAsErrors>CS1591</WarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- Product information shared by all assemblies. -->
+  <PropertyGroup>
+    <Product>FLTestClient</Product>
+    <Authors>TheHuor</Authors>
+    <Copyright>Copyright (c) 2026 TheHuor</Copyright>
+    <RepositoryUrl>https://github.com/TheHuor/FLTestClient</RepositoryUrl>
+  </PropertyGroup>
+
+  <!-- Versioning: MinVer derives the version from the latest git tag (v1.2.3); untagged commits
+       become pre-releases of the next patch version (e.g. 1.2.4-alpha.0.5). -->
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>alpha.0</MinVerDefaultPreReleaseIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
