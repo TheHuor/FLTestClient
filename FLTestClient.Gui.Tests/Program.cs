@@ -96,8 +96,8 @@ internal static class Program
                     Check(view.DesiredSize.Width < 1200, "Unexpected horizontal overflow: " + view.GetType().Name);
                     if (view is SettingsView settings)
                     {
-                        var picker = (ComboBox)settings.FindName("SectionPicker");
-                        for (int section = 0; section < 5; section++)
+                        var picker = (TabControl)settings.FindName("SettingsTabs");
+                        for (int section = 0; section < 4; section++)
                         {
                             picker.SelectedIndex = section;
                             view.Measure(new Size(850, 510)); view.Arrange(new Rect(0, 0, 850, 510)); view.UpdateLayout();
@@ -144,6 +144,106 @@ internal static class Program
             var preview = (DataGrid)dialog.FindName("Preview");
             Check(preview.Items.Cast<FleetAssignment>().Single().Base == "Br01_01_Base", "Preview remained on the old target");
         });
+        Run("Settings categories are four directly visible tabs", () =>
+        {
+            var view = new SettingsView { DataContext = Context() };
+            Check(view.FindName("SettingsTabs") is TabControl tabs && tabs.Items.Count == 4,
+                "Settings categories are still hidden behind a dropdown");
+        });
+        Run("Inspector actions target their bot rather than the bulk selection", () =>
+        {
+            var vm = Context();
+            var a = Row(1, BotState.InSpace); var b = Row(2, BotState.InSpace);
+            vm.Bots.Add(a); vm.Bots.Add(b); a.IsSelected = true;
+            vm.ShowBotActionsCommand.Execute(b);
+            Check(ReferenceEquals(vm.FocusedBot, b) && a.IsSelected && !b.IsSelected, "Context action changed bulk scope");
+            vm.DockTarget = "Li01_01_Base";
+            FleetActionPlan plan = vm.CreateFocusedRelocationPlan();
+            Check(plan.Assignments.Count == 1 && plan.Assignments[0].Name == "Bot02", "Inspector targeted the selected Bot01");
+        });
+        Run("Removing or filtering a focused bot clears inspector scope", () =>
+        {
+            var vm = Context(); var a = Row(1, BotState.InSpace); vm.Bots.Add(a);
+            vm.FocusBotCommand.Execute(a); vm.FleetSearch = "no-match";
+            Check(vm.FocusedBot == null && !(bool)vm.ShowInspector, "Filtered bot kept active inspector");
+            vm.FleetSearch = ""; vm.FocusBotCommand.Execute(a); vm.Bots.Remove(a);
+            Check(vm.FocusedBot == null, "Removed bot kept active inspector");
+        });
+        Run("Card/table switch and inspector collapse preserve selection", () =>
+        {
+            var vm = Context(); var a = Row(1, BotState.InSpace); vm.Bots.Add(a); a.IsSelected = true;
+            vm.FocusBotCommand.Execute(a); vm.UseCardView = false; vm.CloseInspectorCommand.Execute(null);
+            Check(a.IsSelected && ReferenceEquals(vm.FocusedBot, a) && !(bool)vm.ShowInspector, "Presentation changed action scope");
+            vm.UseCardView = true; vm.IsInspectorOpen = true;
+            Check((bool)vm.ShowInspector, "Inspector could not be restored");
+        });
+        Run("Inspector chat contains only the focused bot feed", () =>
+        {
+            var vm = Context(); var a = Row(1, BotState.InSpace); vm.Bots.Add(a);
+            vm.Chat.Add(new FeedEntry("12:00", "Bot01", "one", Tone.Normal));
+            vm.Chat.Add(new FeedEntry("12:00", "Bot02", "two", Tone.Normal));
+            vm.FocusBotCommand.Execute(a);
+            var feed = ((System.ComponentModel.ICollectionView)vm.FocusedChat).Cast<FeedEntry>().ToArray();
+            Check(feed.Length == 1 && feed[0].Text == "one", "Inspector leaked another bot's feed");
+        });
+        Run("Single-bot launch is available only for a currently docked bot", () =>
+        {
+            var vm = Context(); var docked = Row(1, BotState.InBase); var space = Row(2, BotState.InSpace);
+            vm.Bots.Add(docked); vm.Bots.Add(space);
+            Check(vm.BotLaunchCommand.CanExecute(docked) && !vm.BotLaunchCommand.CanExecute(space), "Launch availability ignores state");
+            vm.Bots.Remove(docked);
+            Check(!vm.BotLaunchCommand.CanExecute(docked), "Removed bot remains actionable");
+        });
+        Run("Populated compact cards lay out with readonly location fields", () =>
+        {
+            var vm = Context(); var row = Row(1, BotState.InBase); vm.Bots.Add(row);
+            var view = new FleetView { DataContext = vm };
+            view.Measure(new Size(1100, 720)); view.Arrange(new Rect(0, 0, 1100, 720)); view.UpdateLayout();
+        });
+        Run("Changing inspector bot never reuses another bot chat draft", () =>
+        {
+            var vm = Context(); var a = Row(1, BotState.InSpace); var b = Row(2, BotState.InSpace); vm.Bots.Add(a); vm.Bots.Add(b);
+            vm.ShowBotChatCommand.Execute(a); vm.FocusedChatInput = "/test-for-a"; vm.ShowBotChatCommand.Execute(b);
+            Check(vm.FocusedChatInput == "", "Bot A draft remains armed for Bot B");
+        });
+        Run("Real card-to-table layout does not replace separately focused bot", () =>
+        {
+            var vm = Context(); var a = Row(1, BotState.InSpace); var b = Row(2, BotState.InSpace); vm.Bots.Add(a); vm.Bots.Add(b); a.IsSelected = true;
+            vm.FocusBotCommand.Execute(b);
+            var view = new FleetView { DataContext = vm };
+            view.Measure(new Size(1200, 800)); view.Arrange(new Rect(0, 0, 1200, 800)); view.UpdateLayout();
+            vm.UseCardView = false;
+            view.Measure(new Size(1200, 800)); view.Arrange(new Rect(0, 0, 1200, 800)); view.UpdateLayout();
+            Check(ReferenceEquals(vm.FocusedBot, b), "Table realization replaced explicitly inspected Bot02");
+        });
+        Run("Keyboard table menu resolves the current row instead of old inspector focus", () =>
+        {
+            var vm = Context(); var a = Row(1, BotState.InSpace); var b = Row(2, BotState.InSpace); vm.Bots.Add(a); vm.Bots.Add(b);
+            vm.FocusBotCommand.Execute(a); vm.UseCardView = false;
+            var view = new FleetView { DataContext = vm };
+            var table = (DataGrid)view.FindName("FleetTable"); table.CurrentItem = b;
+            var resolve = typeof(FleetView).GetMethod("ResolveTableMenuBot", BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(resolve != null && ReferenceEquals(resolve.Invoke(view, new object[] { true }), b), "Keyboard menu does not resolve current Bot02");
+        });
+        Run("Every single-bot menu command retains the explicitly named bot", () =>
+        {
+            var vm = Context(); var a = Row(1, BotState.InBase); var b = Row(2, BotState.InSpace);
+            vm.Bots.Add(a); vm.Bots.Add(b); a.IsSelected = true;
+            var view = new FleetView { DataContext = vm };
+            var menu = (ContextMenu)typeof(FleetView).GetMethod("CreateBotMenu", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(view, new object[] { b })!;
+            menu.Measure(new Size(320, 400)); menu.Arrange(new Rect(0, 0, 320, 400)); menu.UpdateLayout();
+            var actions = menu.Items.OfType<MenuItem>().Where(item => item.Command != null).ToArray();
+            Check(actions.Length == 5 && actions.All(item => ReferenceEquals(item.CommandParameter, b)), "Menu used shared bulk selection");
+        });
+        Run("The retained table handles a 200-bot fleet without changing scope", () =>
+        {
+            var vm = Context();
+            for (int i = 1; i <= 200; i++) vm.Bots.Add(Row(i, BotState.InSpace));
+            vm.Bots[99].IsSelected = true; vm.FocusBotCommand.Execute(vm.Bots[99]); vm.UseCardView = false;
+            var view = new FleetView { DataContext = vm };
+            view.Measure(new Size(1200, 800)); view.Arrange(new Rect(0, 0, 1200, 800)); view.UpdateLayout();
+            Check(vm.SelectedCount == 1 && vm.FocusedBot?.Index == 100 && vm.FleetRows.Cast<object>().Count() == 200, "Large-fleet presentation changed scope");
+        });
         if (args.Length == 2 && args[0] == "--render")
         {
             System.IO.Directory.CreateDirectory(args[1]);
@@ -154,16 +254,17 @@ internal static class Program
                 app.Resources.MergedDictionaries[2] = new ResourceDictionary { Source = new Uri($"/FLTestClientGui;component/Languages/{lang}.xaml", UriKind.Relative) };
                 Texts.Language = lang;
                 var vm = Context();
-                for (int i = 1; i <= 5; i++) { var row = Row(i, i == 2 ? BotState.InBase : BotState.InSpace); vm.Bots.Add(row); row.IsSelected = true; }
+                for (int i = 1; i <= 12; i++) { var row = Row(i, i == 2 ? BotState.InBase : BotState.InSpace); vm.Bots.Add(row); row.IsSelected = i == 3; }
                 foreach (UserControl view in new UserControl[] { new FleetView(), new BehaviourView(), new CommsView(), new CommandView(), new DiagnosticsView(), new SettingsView() })
                 {
                     view.DataContext = vm;
+                    if (view is FleetView) vm.ShowBotActionsCommand.Execute(vm.Bots[2]);
                     Capture(view, 860, 520, System.IO.Path.Combine(args[1], $"{view.GetType().Name}-{lang}-{theme}.png"));
                     if (view is SettingsView settings)
                     {
-                        for (int section = 1; section < 5; section++)
+                        for (int section = 1; section < 4; section++)
                         {
-                            ((ComboBox)settings.FindName("SectionPicker")).SelectedIndex = section;
+                            ((TabControl)settings.FindName("SettingsTabs")).SelectedIndex = section;
                             Capture(view, 860, 520, System.IO.Path.Combine(args[1], $"Settings-{section}-{lang}-{theme}.png"));
                         }
                     }
@@ -173,6 +274,23 @@ internal static class Program
                         Capture(view, 860, 520, System.IO.Path.Combine(args[1], $"ServerLog-{lang}-{theme}.png"));
                     }
                 }
+                var mainContext = Context(lang, theme == "Dark");
+                for (int i = 1; i <= 12; i++) { var bot = DemoRow(i); mainContext.Bots.Add(bot); bot.IsSelected = i == 3; }
+                mainContext.ShowBotActionsCommand.Execute(mainContext.Bots[2]);
+                var main = new MainWindow(mainContext);
+                var mainContent = (FrameworkElement)main.Content;
+                Capture(mainContent, 1440, 1024, System.IO.Path.Combine(args[1], $"Main-cards-{lang}-{theme}.png"));
+                mainContext.UseCardView = false;
+                Capture(mainContent, 1440, 1024, System.IO.Path.Combine(args[1], $"Main-table-{lang}-{theme}.png"));
+                mainContext.UseCardView = true;
+                Capture(mainContent, 1100, 680, System.IO.Path.Combine(args[1], $"Main-minimum-{lang}-{theme}.png"));
+                mainContext.IsInspectorOpen = false;
+                Capture(mainContent, 1440, 1024, System.IO.Path.Combine(args[1], $"Main-collapsed-{lang}-{theme}.png"));
+                var settingsContext = Context(lang, theme == "Dark"); settingsContext.MainPageIndex = 5;
+                var settingsMain = new MainWindow(settingsContext);
+                Capture((FrameworkElement)settingsMain.Content, 1440, 1024, System.IO.Path.Combine(args[1], $"Main-settings-{lang}-{theme}.png"));
+                var add = new AddBotsWindow(Context(lang, theme == "Dark"));
+                Capture((FrameworkElement)add.Content, 460, 310, System.IO.Path.Combine(args[1], $"AddBots-{lang}-{theme}.png"));
                 var dialog = new FleetActionWindow(vm, true);
                 Capture((FrameworkElement)dialog.Content, 720, 610, System.IO.Path.Combine(args[1], $"Distribution-{lang}-{theme}.png"));
             }
@@ -187,11 +305,14 @@ internal static class Program
     }
     private static void Capture(FrameworkElement view, int width, int height, string file)
     {
+        view.DataContext = view.DataContext; // Retain inherited window context when rendering its content separately.
         view.Measure(new Size(width, height)); view.Arrange(new Rect(0, 0, width, height)); view.UpdateLayout();
         var host = new Grid { Background = (Brush)Application.Current.FindResource("WindowBackground") };
         if (view.Parent is Panel panel) panel.Children.Remove(view);
         else if (view.Parent is Window window) window.Content = null;
         host.Children.Add(view);
+        System.Windows.Documents.TextElement.SetFontFamily(host, new FontFamily("Segoe UI"));
+        System.Windows.Documents.TextElement.SetFontSize(host, 13);
         System.Windows.Documents.TextElement.SetForeground(host, (Brush)Application.Current.FindResource("TextPrimary"));
         var surface = new Window { Content = host, Width = width, Height = height, WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowActivated = false, ShowInTaskbar = false, Left = -10000, Top = -10000 };
         surface.Show();
@@ -204,11 +325,19 @@ internal static class Program
         using var output = System.IO.File.Create(file); encoder.Save(output);
         surface.Close();
     }
-    private static MainViewModel Context()
+    private static MainViewModel Context(string language = "en", bool dark = true)
     {
-        var vm = new MainViewModel(new GuiSettings(), _ => { });
+        var vm = new MainViewModel(new GuiSettings { Language = language, DarkTheme = dark }, _ => { });
         ((DispatcherTimer)typeof(MainViewModel).GetField("timer", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(vm)!).Stop();
         return vm;
+    }
+    private static BotRowViewModel DemoRow(int index)
+    {
+        var bot = new BotRowViewModel(index, $"TestBot{index:D2}");
+        var state = index == 2 ? BotState.InBase : index == 8 ? BotState.Failed : index == 12 ? BotState.Offline : BotState.InSpace;
+        bot.Update(new BotSnapshot(index, bot.Name, "demo", state, 1, (uint)((index - 1) % 4 + 1), state == BotState.InBase ? 101u : 0, 1, 15000, 24, 0, Vector3.Zero),
+            id => id switch { 1 => "New York", 2 => "Texas", 3 => "California", 4 => "Colorado", 101 => "Manhattan", _ => "" });
+        return bot;
     }
     private static BotRowViewModel Row(int index, BotState state)
     {

@@ -106,6 +106,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DockSelectedCommand = new RelayCommand(DockSelected, HasSelection);
 
         InitializeInteraction();
+        InitializeFleetPresentation();
 
         timer.Tick += (_, _) => Refresh();
         timer.Start();
@@ -193,7 +194,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ObservableCollection<string> BaseList { get; } = new();
 
     /// <summary>Target base for "Dock at base" (nickname, e.g. Li01_01_Base).</summary>
-    public string DockTarget { get => dockTarget; set => Set(ref dockTarget, value); }
+    public string DockTarget { get => dockTarget; set { if (Set(ref dockTarget, value)) OnPropertyChanged(nameof(FocusedRelocationSummary)); } }
 
     /// <summary>Faction for new characters ([Faction] in newcharacter.ini).</summary>
     public string Faction { get => faction; set => Set(ref faction, value); }
@@ -743,6 +744,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         settings.ChatIntervalSeconds = ChatIntervalSeconds;
         settings.ChatScript = ChatScript;
         settings.DockTarget = DockTarget.Trim();
+        settings.CardsView = UseCardView;
         persistSettings(settings);
     }
 

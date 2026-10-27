@@ -79,3 +79,10 @@ public partial class DiagnosticsView : UserControl
     /// <summary>Creates the view.</summary>
     public DiagnosticsView() => InitializeComponent();
 }
+
+/// <summary>Focused-bot details, scoped chat and actions.</summary>
+public partial class BotInspector : UserControl
+{
+    /// <summary>Creates the inspector.</summary>
+    public BotInspector() => InitializeComponent();
+}

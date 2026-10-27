@@ -21,7 +21,7 @@ public partial class App : Application
     public static void ApplyTheme(bool dark)
     {
         Current.Resources.MergedDictionaries[PaletteSlot] =
-            new ResourceDictionary { Source = new Uri($"Themes/{(dark ? "Dark" : "Bright")}.xaml", UriKind.Relative) };
+            new ResourceDictionary { Source = new Uri($"/FLTestClientGui;component/Themes/{(dark ? "Dark" : "Bright")}.xaml", UriKind.Relative) };
         foreach (Window w in Current.Windows)
             SetDarkTitleBar(w, dark);
     }
@@ -35,7 +35,7 @@ public partial class App : Application
     {
         Texts.Language = language;
         Current.Resources.MergedDictionaries[LanguageSlot] =
-            new ResourceDictionary { Source = new Uri($"Languages/{Texts.Language}.xaml", UriKind.Relative) };
+            new ResourceDictionary { Source = new Uri($"/FLTestClientGui;component/Languages/{Texts.Language}.xaml", UriKind.Relative) };
     }
 
     /// <summary>Sets the title bar of a window dark or light (Windows 10 20H1 and later).</summary>

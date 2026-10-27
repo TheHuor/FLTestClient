@@ -61,17 +61,22 @@ git push origin v1.0.0
 
 ## GUI
 
-- **Fleet:** add and connect bots, search by name/number/system and filter by state.
-  Filtering clears selection so actions never silently target hidden rows. "Select visible"
-  selects only the filtered rows. Launching into space is a separate action.
-- **Selection:** fleet, chat and admin pages show the selected count and states; expand the
-  summary to inspect names or clear selection.
+- **Fleet:** compact bot cards by default, with a switchable table for large fleets. Search by
+  name/number/system and filter by state. "Add bots" opens the range form. Click a card to
+  inspect/select it; use its checkbox or Ctrl-click for multiple selection. Filtering clears
+  selection so actions never silently target hidden rows.
+- **Single-bot actions:** right-click a card or table row, or use its visible `…` menu. These
+  actions target the named bot, independently from the bulk selection. The collapsible
+  inspector contains Details, Chat and Actions; changing bots clears any unsent chat draft.
+- **Bulk selection:** "Select visible" selects filtered rows. "Selection actions" explicitly
+  operates on the count shown in the footer; switching cards/table preserves this scope.
 - **Relocate / distribute:** choose target bases and inspect each assignment directly from
   Fleet. FLHook `beam` teleports in-space bots; docked bots are skipped. The preview identifies
   the admin endpoint and auto-launch setting. Changed/removed bots require a new preview.
   Command results appear in both fleet activity and the admin console.
 - **Behaviour:** global movement, session cycles, automated chat and launch automation.
-  Changes apply to all running bots. Circle radius takes effect at the next launch;
+  Direct tabs separate Movement, Sessions and Chat automation. Changes apply to all running
+  bots. Circle radius takes effect at the next launch;
   launch automation takes effect at the next docking.
 - **Chat:** the scope selects the bots that **send** the message, not in-game recipients.
   Quick commands prepare the input; only Send executes it.
@@ -80,8 +85,9 @@ git push origin v1.0.0
 - **Diagnostics:** bot activity, undecoded packets and server log with explicit monitoring
   state and counters. Auto-scroll can be paused. Changing an actively monitored log path
   switches the watcher; an invalid path disables monitoring visibly.
-- **Settings:** separate sections for connection, identity, character defaults, local files
-  (with file/folder pickers), appearance and language.
+- **Settings:** four directly visible tabs: Connection, Bots & Characters, Local files and
+  Appearance & language. Game-server and FLHook-admin credentials are shown together;
+  bot identity and new-character defaults share one tab. No category dropdown is required.
 
 Last inputs (never passwords) are stored in `%APPDATA%\FLTestClient\settings.json`.
 
@@ -94,7 +100,8 @@ dotnet build FLTestClient.slnx -c Release
 & "${env:ProgramFiles(x86)}/dotnet/dotnet.exe" FLTestClient.Gui.Tests/bin/Release/net10.0-windows/FLTestClient.Gui.Tests.dll
 ```
 
-The suite checks action plans, invalid arguments, selection/filter changes, log-path changes
+The suite checks action plans, invalid arguments, selection/filter changes, log-path changes,
+single-bot vs bulk scope, retained table focus, keyboard context menus, a 200-bot table,
 and runtime loading of all views in English/German and dark/bright themes. It injects isolated
 settings and does not persist user settings or contact a game server. CI installs the x86
 Windows Desktop runtime needed to execute it.

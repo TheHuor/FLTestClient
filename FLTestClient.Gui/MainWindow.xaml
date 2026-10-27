@@ -24,68 +24,27 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header: logo, live figures, server, theme and language -->
-        <Border Background="{DynamicResource HeaderBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,0,0,1"
-                Padding="20,12">
+        <!-- Quiet global context; fleet cards carry the detailed state. -->
+        <Border Background="{DynamicResource HeaderBackground}" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,0,0,1" Padding="20,12">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Width="176">
-                    <Image Source="{StaticResource LogoMark}" Width="42" Height="42" Margin="0,0,10,0"
-                           RenderOptions.BitmapScalingMode="HighQuality" />
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="FLTESTCLIENT" FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="15"
-                                   Foreground="{DynamicResource TextPrimary}" />
-                        <TextBlock Text="FLEET CONTROL" FontFamily="{StaticResource HeadingFont}" FontSize="10"
-                                   Foreground="{DynamicResource Accent}" />
-                    </StackPanel>
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0">
+                    <Image Source="{StaticResource LogoMark}" Width="34" Height="34" Margin="0,0,10,0"/>
+                    <TextBlock Text="FLTESTCLIENT" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
-
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Style="{StaticResource StatChip}" Padding="12,6" ToolTip="{DynamicResource Header.ServerTip}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{DynamicResource Header.GameServer}" Foreground="{DynamicResource TextMuted}" Margin="0,0,8,0" />
-                            <TextBlock Text="{Binding ServerDisplay}" FontFamily="{StaticResource MonoFont}" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Border>
-                    <Button Command="{Binding ToggleLanguageCommand}" Padding="10,6" Width="46" ToolTip="{DynamicResource Header.LanguageTip}">
-                        <TextBlock Text="{Binding LanguageCode}" FontFamily="{StaticResource HeadingFont}" FontWeight="SemiBold" />
-                    </Button>
-                    <Button Command="{Binding ToggleThemeCommand}" Margin="0" Padding="10,6" ToolTip="{DynamicResource Header.ThemeTip}">
-                        <TextBlock Text="{Binding ThemeIcon}" Style="{StaticResource Icon}" FontSize="16" />
-                    </Button>
+                    <Button Command="{Binding ToggleLanguageCommand}" Content="{Binding LanguageCode}" ToolTip="{DynamicResource Header.LanguageTip}"/>
+                    <Button Command="{Binding ToggleThemeCommand}" ToolTip="{DynamicResource Header.ThemeTip}" Margin="0"><TextBlock Text="{Binding ThemeIcon}" Style="{StaticResource Icon}"/></Button>
                 </StackPanel>
-
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Border Style="{StaticResource StatChip}">
-                        <StackPanel>
-                            <TextBlock Text="{Binding OnlineCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Accent}" />
-                            <TextBlock Text="{DynamicResource Stat.Online}" Style="{StaticResource StatLabel}" />
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource StatChip}">
-                        <StackPanel>
-                            <TextBlock Text="{Binding InSpaceCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Success}" />
-                            <TextBlock Text="{DynamicResource Stat.InSpace}" Style="{StaticResource StatLabel}" />
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource StatChip}">
-                        <StackPanel>
-                            <TextBlock Text="{Binding DockedCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource TextPrimary}" />
-                            <TextBlock Text="{DynamicResource Stat.Docked}" Style="{StaticResource StatLabel}" />
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource StatChip}">
-                        <StackPanel>
-                            <TextBlock Text="{Binding FailedCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Danger}" />
-                            <TextBlock Text="{DynamicResource Stat.Errors}" Style="{StaticResource StatLabel}" />
-                        </StackPanel>
-                    </Border>
-
+                    <TextBlock Text="{DynamicResource Header.GameServer}" Foreground="{DynamicResource TextMuted}" Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding ServerDisplay}" Margin="0,0,18,0"/>
+                    <TextBlock Foreground="{DynamicResource TextMuted}"><Run Text="{Binding Bots.Count, Mode=OneWay}"/><Run Text=" "/><Run Text="{DynamicResource Header.Managed}"/></TextBlock>
                 </StackPanel>
             </DockPanel>
         </Border>
 
         <!-- Navigation and pages -->
-        <TabControl Grid.Row="1" Style="{StaticResource NavTabControl}">
+        <TabControl Grid.Row="1" Style="{StaticResource NavTabControl}" SelectedIndex="{Binding MainPageIndex}">
             <TabItem Header="{DynamicResource Nav.Fleet}" Tag="&#xE716;">
                 <views:FleetView />
             </TabItem>
