@@ -100,7 +100,7 @@ dotnet build FLTestClient.slnx -c Release
 & "${env:ProgramFiles(x86)}/dotnet/dotnet.exe" FLTestClient.Gui.Tests/bin/Release/net10.0-windows/FLTestClient.Gui.Tests.dll
 ```
 
-The suite checks action plans, invalid arguments, selection/filter changes, log-path changes
+The suite checks action plans, invalid arguments, selection/filter changes, log-path changes,
 single-bot vs bulk scope, retained table focus, keyboard context menus, a 200-bot table,
 and runtime loading of all views in English/German and dark/bright themes. It injects isolated
 settings and does not persist user settings or contact a game server. CI installs the x86
