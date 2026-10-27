@@ -48,3 +48,7 @@ Ruling: Reject invalid/stale action plans rather than silently changing targets 
 Ruling: Clear selection on filter changes to prevent hidden targets; documented in the UI.
 Deferred minors: none from the final review; unused distribution API and descriptor lifetime cleaned up.
 Task 3: local verification complete; remote synchronization follows.
+
+CI iteration: the first hosted run built successfully but the desktop-runtime archive alone did
+not include dotnet.exe. The workflow now installs the x86 core runtime/host before the desktop
+runtime, then runs the same 13 checks. No application-code change was needed for this CI fix.
