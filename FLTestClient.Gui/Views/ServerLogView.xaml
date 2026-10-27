@@ -20,6 +20,7 @@
         <StackPanel Margin="0,0,0,14">
             <TextBlock Text="{DynamicResource Log.Title}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{DynamicResource Log.Subtitle}" Style="{StaticResource Muted}" />
+            <TextBlock Text="{Binding LogMonitoringSummary}" Foreground="{DynamicResource Accent}" Margin="0,8,0,0" TextWrapping="Wrap" />
         </StackPanel>
 
         <!-- File and switches -->
@@ -38,7 +39,7 @@
         </Border>
 
         <!-- Counters -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
+        <WrapPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
             <Border Style="{StaticResource CounterCard}">
                 <StackPanel>
                     <TextBlock Text="{Binding TimeLagCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Warning}" FontSize="26" />
@@ -65,11 +66,11 @@
             </Border>
             <Button Style="{StaticResource ChipButton}" Content="{DynamicResource Log.ResetCounters}" Command="{Binding ResetCountersCommand}"
                     VerticalAlignment="Center" />
-        </StackPanel>
+        </WrapPanel>
 
         <!-- Live feed -->
         <Border Grid.Row="3" Style="{StaticResource Card}">
-            <ListBox ItemsSource="{Binding ServerLog}" Style="{StaticResource FeedList}" gui:Behaviors.AutoScroll="True">
+            <ListBox ItemsSource="{Binding ServerLog}" Style="{StaticResource FeedList}" gui:Behaviors.AutoScroll="{Binding AutoScrollLogs}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Text}" Style="{StaticResource ToneText}" />

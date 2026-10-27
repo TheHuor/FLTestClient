@@ -10,40 +10,40 @@
     <sys:String x:Key="Stat.Online">ONLINE</sys:String>
     <sys:String x:Key="Stat.InSpace">IN SPACE</sys:String>
     <sys:String x:Key="Stat.Docked">DOCKED</sys:String>
-    <sys:String x:Key="Stat.Errors">ERRORS</sys:String>
+    <sys:String x:Key="Stat.Errors">FAILED BOTS</sys:String>
     <sys:String x:Key="Stat.TimeLags">TIME LAGS</sys:String>
-    <sys:String x:Key="Header.ServerTip">Server (see Settings)</sys:String>
+    <sys:String x:Key="Header.ServerTip">Configured game endpoint; Online shows the connected bot count.</sys:String>
     <sys:String x:Key="Header.ThemeTip">Dark / bright theme</sys:String>
     <sys:String x:Key="Header.LanguageTip">Language: English / Deutsch</sys:String>
     <sys:String x:Key="Header.TimeLagTip">Time lag entries in the server log (enable following)</sys:String>
 
     <!-- Navigation -->
     <sys:String x:Key="Nav.Fleet">Fleet</sys:String>
-    <sys:String x:Key="Nav.Comms">Comms</sys:String>
-    <sys:String x:Key="Nav.Command">Command</sys:String>
+    <sys:String x:Key="Nav.Comms">Chat</sys:String>
+    <sys:String x:Key="Nav.Command">Server admin</sys:String>
     <sys:String x:Key="Nav.ServerLog">Server log</sys:String>
     <sys:String x:Key="Nav.Settings">Settings</sys:String>
 
     <!-- Fleet -->
     <sys:String x:Key="Fleet.Title">Fleet</sys:String>
-    <sys:String x:Key="Fleet.Subtitle">Start, select and control bots. Multi-select with Ctrl/Shift.</sys:String>
+    <sys:String x:Key="Fleet.Subtitle">Add bots, select and control them. Filters clear selection; Ctrl/Shift selects multiple rows.</sys:String>
     <sys:String x:Key="Fleet.NewBots">NEW BOTS</sys:String>
     <sys:String x:Key="Fleet.Selection">SELECTED</sys:String>
     <sys:String x:Key="Fleet.Count">COUNT</sys:String>
     <sys:String x:Key="Fleet.From">FROM NO.</sys:String>
     <sys:String x:Key="Fleet.AutoStart">Auto launch</sys:String>
-    <sys:String x:Key="Fleet.AutoStartTip">Launch into space again 3 s after every docking</sys:String>
-    <sys:String x:Key="Fleet.StartBots">Start bots</sys:String>
+    <sys:String x:Key="Fleet.AutoStartTip">Global launch automation is configured in Behaviour.</sys:String>
+    <sys:String x:Key="Fleet.StartBots">Add &amp; connect bots</sys:String>
     <sys:String x:Key="Fleet.Launch">Launch</sys:String>
     <sys:String x:Key="Fleet.LaunchTip">Launch the selected bots into space</sys:String>
-    <sys:String x:Key="Fleet.Distribute">Distribute</sys:String>
-    <sys:String x:Key="Fleet.DistributeTip">Beam the selected bots in space to the target bases (see Command) via FLHook</sys:String>
+    <sys:String x:Key="Fleet.Distribute">Distribute…</sys:String>
+    <sys:String x:Key="Fleet.DistributeTip">Choose target bases and preview the selected bots before distributing.</sys:String>
     <sys:String x:Key="Fleet.Reconnect">Reconnect</sys:String>
     <sys:String x:Key="Fleet.ReconnectTip">Reconnect the selected bots</sys:String>
-    <sys:String x:Key="Fleet.Disconnect">Disconnect</sys:String>
+    <sys:String x:Key="Fleet.Disconnect">Disconnect &amp; remove</sys:String>
     <sys:String x:Key="Fleet.DisconnectTip">Log out and remove the selected bots</sys:String>
-    <sys:String x:Key="Fleet.SelectAll">Select all</sys:String>
-    <sys:String x:Key="Fleet.LogoutAll">Log out all</sys:String>
+    <sys:String x:Key="Fleet.SelectAll">Select visible</sys:String>
+    <sys:String x:Key="Fleet.LogoutAll">Disconnect all bots</sys:String>
     <sys:String x:Key="Fleet.LogoutAllTip">Log out all bots cleanly</sys:String>
     <sys:String x:Key="Col.Nr">NO.</sys:String>
     <sys:String x:Key="Col.Pilot">PILOT</sys:String>
@@ -55,13 +55,13 @@
     <sys:String x:Key="Col.Ping">PING</sys:String>
     <sys:String x:Key="Col.Unknown">UNKN.</sys:String>
     <sys:String x:Key="Fleet.EmptyTitle">No bots deployed yet</sys:String>
-    <sys:String x:Key="Fleet.EmptyText">Check server and password in Settings, then press “Start bots”.</sys:String>
+    <sys:String x:Key="Fleet.EmptyText">Configure the server in Settings, then add &amp; connect bots.</sys:String>
     <sys:String x:Key="Fleet.Activity">ACTIVITY</sys:String>
     <sys:String x:Key="Fleet.SelectedOnly">selection only</sys:String>
     <sys:String x:Key="Common.Clear">Clear</sys:String>
     <sys:String x:Key="Fleet.DockTarget">TARGET BASE</sys:String>
-    <sys:String x:Key="Fleet.Dock">Dock</sys:String>
-    <sys:String x:Key="Fleet.DockTip">Dock the selected bots in space at the chosen base (FLHook beam, works across systems)</sys:String>
+    <sys:String x:Key="Fleet.Dock">Relocate to base…</sys:String>
+    <sys:String x:Key="Fleet.DockTip">Preview relocation via FLHook beam. Requires admin access.</sys:String>
 
     <!-- Settings: new characters and behaviour -->
     <sys:String x:Key="Set.NewChars">NEW CHARACTERS</sys:String>
@@ -83,16 +83,16 @@
     <sys:String x:Key="Set.BehaviourHint">Circle, cycles and chat script create realistic load: movement, logins/logouts with saving, and plugin commands.</sys:String>
 
     <!-- Comms -->
-    <sys:String x:Key="Comms.Title">Comms</sys:String>
-    <sys:String x:Key="Comms.Subtitle">Universe chat of the bots. Send text or FLHook commands (e.g. /help) to the selected or all bots.</sys:String>
-    <sys:String x:Key="Comms.Quick">QUICK</sys:String>
-    <sys:String x:Key="Comms.Selected">Selected</sys:String>
-    <sys:String x:Key="Comms.AllBots">All bots</sys:String>
+    <sys:String x:Key="Comms.Title">Chat &amp; bot commands</sys:String>
+    <sys:String x:Key="Comms.Subtitle">Choose which bots send the message. Quick commands fill the input; Send executes it.</sys:String>
+    <sys:String x:Key="Comms.Quick">PREPARE</sys:String>
+    <sys:String x:Key="Comms.Selected">Send through selection</sys:String>
+    <sys:String x:Key="Comms.AllBots">Send through all bots</sys:String>
     <sys:String x:Key="Comms.Send">Send</sys:String>
 
     <!-- Command -->
-    <sys:String x:Key="Cmd.Title">Command</sys:String>
-    <sys:String x:Key="Cmd.Subtitle">FLHook admin interface: player list, rehash, kick, and distributing bots across systems via beam.</sys:String>
+    <sys:String x:Key="Cmd.Title">Server administration</sys:String>
+    <sys:String x:Key="Cmd.Subtitle">FLHook admin access, player list and server commands.</sys:String>
     <sys:String x:Key="Cmd.Connection">CONNECTION</sys:String>
     <sys:String x:Key="Cmd.Host">FLHOOK HOST</sys:String>
     <sys:String x:Key="Cmd.Port">PORT</sys:String>
@@ -173,4 +173,45 @@
     <sys:String x:Key="Msg.Dock">Dock</sys:String>
     <sys:String x:Key="Msg.Docking">docking {0} bot(s) at {1}</sys:String>
     <sys:String x:Key="Msg.Following">following {0} – new lines only</sys:String>
+    <sys:String x:Key="Nav.Behaviour">Behaviour</sys:String>
+    <sys:String x:Key="Nav.Diagnostics">Diagnostics</sys:String>
+    <sys:String x:Key="Fleet.Search">SEARCH NAME, NUMBER OR SYSTEM</sys:String>
+    <sys:String x:Key="Selection.Summary">{0} selected · {1} in space · {2} docked</sys:String>
+    <sys:String x:Key="Selection.None">Select bots in Fleet.</sys:String>
+    <sys:String x:Key="Selection.Clear">Clear selection</sys:String>
+    <sys:String x:Key="Filter.All">All states</sys:String>
+    <sys:String x:Key="Behaviour.Scope">GLOBAL · applies to all bots</sys:String>
+    <sys:String x:Key="Behaviour.Subtitle">Control movement, session cycles and automated chat for this session.</sys:String>
+    <sys:String x:Key="Behaviour.Timing">Changes apply to the current session. Circle radius takes effect on the next launch; launch automation on the next docking.</sys:String>
+    <sys:String x:Key="Admin.Check">Test admin access</sys:String>
+    <sys:String x:Key="Admin.Unchecked">Admin access not checked</sys:String>
+    <sys:String x:Key="Admin.Checking">Checking admin access…</sys:String>
+    <sys:String x:Key="Admin.Checked">Authentication succeeded at {0}</sys:String>
+    <sys:String x:Key="Admin.Failed">Admin check failed at {0}</sys:String>
+    <sys:String x:Key="Admin.ConsoleHint">Test admin access or request the player list. Each action opens its own connection.</sys:String>
+    <sys:String x:Key="Action.AutoLaunchOn">Auto-launch ON: bots launch again 3 seconds after docking.</sys:String>
+    <sys:String x:Key="Action.AutoLaunchOff">Auto-launch OFF: bots remain docked.</sys:String>
+    <sys:String x:Key="Action.InvalidBases">Enter base nicknames using letters, digits, underscores or hyphens; one per line.</sys:String>
+    <sys:String x:Key="Action.InvalidNames">A selected bot name cannot be used as an admin command argument.</sys:String>
+    <sys:String x:Key="Action.Preview">{0} bots will be relocated · {1} skipped (not in space or removed)</sys:String>
+    <sys:String x:Key="Action.Explanation">Teleports selected bots via FLHook beam; no physical flight to the docking ring.</sys:String>
+    <sys:String x:Key="Action.TargetHint">Use base nicknames. Multiple bases are assigned in order, repeatedly.</sys:String>
+    <sys:String x:Key="Action.Endpoint">FLHook admin: {0}:{1}</sys:String>
+    <sys:String x:Key="Action.Execute">Execute preview</sys:String>
+    <sys:String x:Key="Action.Refresh">Refresh preview</sys:String>
+    <sys:String x:Key="Action.Changed">Fleet changed. Review the updated preview and execute again.</sys:String>
+    <sys:String x:Key="Action.Submitted">Relocation requested for {0} bots; results appear in Activity.</sys:String>
+    <sys:String x:Key="Common.Cancel">Cancel</sys:String>
+    <sys:String x:Key="Common.Browse">Browse…</sys:String>
+    <sys:String x:Key="Header.GameServer">Game server</sys:String>
+    <sys:String x:Key="Log.AutoScroll">Auto-scroll</sys:String>
+    <sys:String x:Key="Log.Monitoring">Reading new log entries · counters since app start or last reset.</sys:String>
+    <sys:String x:Key="Log.NotMonitoring">Log monitoring inactive · zero counters do not confirm server health.</sys:String>
+    <sys:String x:Key="Diagnostics.Hint">Bot activity and admin results. Undecoded packet counts are listed below.</sys:String>
+    <sys:String x:Key="Set.Section">SECTION</sys:String>
+    <sys:String x:Key="Set.SectionServer">Server connection</sys:String>
+    <sys:String x:Key="Set.SectionIdentity">Bot identity</sys:String>
+    <sys:String x:Key="Set.SectionCharacters">Character defaults</sys:String>
+    <sys:String x:Key="Set.SectionFiles">Local files</sys:String>
+    <sys:String x:Key="Set.SectionAppearance">Appearance &amp; language</sys:String>
 </ResourceDictionary>

@@ -16,11 +16,12 @@ namespace FLTestClient.Gui.ViewModels;
 /// and sends work with <see cref="BotManager.Post"/>. Messages from other threads go into queues that a
 /// <see cref="DispatcherTimer"/> moves into the lists four times per second.
 /// </remarks>
-public sealed class MainViewModel : ObservableObject, IDisposable
+public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private const int MaxFeedEntries = 3000;
 
-    private readonly GuiSettings settings = GuiSettings.Load();
+    private readonly GuiSettings settings;
+    private readonly Action<GuiSettings> persistSettings;
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly ConcurrentQueue<(int? Bot, FeedEntry Entry)> activityQueue = new();
     private readonly ConcurrentQueue<FeedEntry> chatQueue = new();
@@ -47,8 +48,12 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public event Action<string>? LanguageChanged;
 
     /// <summary>Loads the stored settings and starts the refresh timer.</summary>
-    public MainViewModel()
+    public MainViewModel() : this(GuiSettings.Load(), s => s.Save()) { }
+
+    internal MainViewModel(GuiSettings initialSettings, Action<GuiSettings> persist)
     {
+        settings = initialSettings;
+        persistSettings = persist;
         host = settings.Host.Length > 0 ? settings.Host : GuessLocalAddress();
         port = settings.Port;
         accountPrefix = settings.AccountPrefix;
@@ -86,10 +91,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         ReconnectSelectedCommand = new RelayCommand(() => ForSelected((_, b) => { b.Stop(); b.Start(); }, "Act.Reconnect"), HasSelection);
         RemoveSelectedCommand = new RelayCommand(() => ForSelected((m, b) => m.Remove(b), "Act.Disconnect"), HasSelection);
         SelectAllCommand = new RelayCommand(() => { foreach (var r in Bots) r.IsSelected = true; }, () => Bots.Count > 0);
-        DistributeSelectedCommand = new RelayCommand(() => Distribute(selectedOnly: true), HasSelection);
-        DistributeAllCommand = new RelayCommand(() => Distribute(selectedOnly: false), () => Bots.Count > 0);
-        SendChatCommand = new RelayCommand(SendChat, () => IsRunning && ChatInput.Trim().Length > 0);
-        QuickChatCommand = new RelayCommand(p => { ChatInput = p as string ?? ""; SendChat(); }, _ => IsRunning);
+        DistributeSelectedCommand = new RelayCommand(() => RequestFleetAction?.Invoke(true), HasSelection);
+        SendChatCommand = new RelayCommand(SendChat, () => IsRunning && (ChatToAll ? Bots.Count > 0 : HasSelection()) && ChatInput.Trim().Length > 0);
+        QuickChatCommand = new RelayCommand(p => ChatInput = p as string ?? "", _ => true);
         AdminGetPlayersCommand = new RelayCommand(() => RunAdmin("getplayers"));
         AdminRehashCommand = new RelayCommand(() => RunAdmin("rehash"));
         AdminKickSelectedCommand = new RelayCommand(KickSelected, HasSelection);
@@ -99,7 +103,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         ClearActivityCommand = new RelayCommand(() => Activity.Clear());
         ToggleThemeCommand = new RelayCommand(() => IsDarkTheme = !IsDarkTheme);
         ToggleLanguageCommand = new RelayCommand(() => IsGerman = !IsGerman);
-        DockSelectedCommand = new RelayCommand(DockSelected, () => HasSelection() && DockTarget.Trim().Length > 0);
+        DockSelectedCommand = new RelayCommand(DockSelected, HasSelection);
+
+        InitializeInteraction();
 
         timer.Tick += (_, _) => Refresh();
         timer.Start();
@@ -144,9 +150,6 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>Beams the selected bots to the target bases in turn.</summary>
     public ICommand DistributeSelectedCommand { get; }
-
-    /// <summary>Beams all bots in space to the target bases in turn.</summary>
-    public ICommand DistributeAllCommand { get; }
 
     /// <summary>Sends <see cref="ChatInput"/>.</summary>
     public ICommand SendChatCommand { get; }
@@ -283,19 +286,19 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public int Count { get => count; set => Set(ref count, Math.Clamp(value, 1, 200)); }
 
     /// <summary>Launch automatically after every docking.</summary>
-    public bool AutoLaunch { get => autoLaunch; set => Set(ref autoLaunch, value); }
+    public bool AutoLaunch { get => autoLaunch; set { if (Set(ref autoLaunch, value)) { if (manager != null) manager.Options.AutoLaunch = value; OnPropertyChanged(nameof(AutoLaunchSummary)); } } }
 
     /// <summary>DATA folder of the server (universe.ini) for base and system names.</summary>
     public string DataDirectory { get => dataDirectory; set => Set(ref dataDirectory, value); }
 
     /// <summary>Host of the FLHook admin interface.</summary>
-    public string AdminHost { get => adminHost; set => Set(ref adminHost, value); }
+    public string AdminHost { get => adminHost; set { if (Set(ref adminHost, value)) ResetAdminCheck(); } }
 
     /// <summary>Port of the FLHook admin interface.</summary>
-    public int AdminPort { get => adminPort; set => Set(ref adminPort, value); }
+    public int AdminPort { get => adminPort; set { if (Set(ref adminPort, value)) ResetAdminCheck(); } }
 
     /// <summary>Admin password (not stored).</summary>
-    public string AdminPassword { get => adminPassword; set => Set(ref adminPassword, value); }
+    public string AdminPassword { get => adminPassword; set { if (Set(ref adminPassword, value)) ResetAdminCheck(); } }
 
     /// <summary>Path of flhook.ini.</summary>
     public string FlhookIni { get => flhookIni; set => Set(ref flhookIni, value); }
@@ -307,7 +310,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public string AdminCommand { get => adminCommand; set => Set(ref adminCommand, value); }
 
     /// <summary>Path of the FLHook log.</summary>
-    public string ServerLogPath { get => serverLogPath; set => Set(ref serverLogPath, value); }
+    public string ServerLogPath { get => serverLogPath; set { if (Set(ref serverLogPath, value) && FollowServerLog) UpdateServerLogWatcher(); } }
 
     /// <summary>Follow the server log.</summary>
     public bool FollowServerLog
@@ -360,6 +363,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged();
             OnPropertyChanged(nameof(Language));
             OnPropertyChanged(nameof(LanguageCode));
+            NotifyInteraction();
             SaveSettings();
         }
     }
@@ -513,19 +517,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     // the docking ring would need the solar positions and actual flight.
     private void DockSelected()
     {
-        string target = DockTarget.Trim();
-        var selected = Bots.Where(b => b.IsSelected).ToList();
-        var inSpace = selected.Where(b => b.State == BotState.InSpace).ToList();
-        if (inSpace.Count == 0)
-        {
-            Status(Loc.T("Msg.NoBotInSpace"));
-            AddFeed(AdminOutput, Entry(Loc.T("Msg.Dock"), Loc.T("Msg.NoBotInSpace"), Tone.Warning));
-            return;
-        }
-        if (inSpace.Count < selected.Count)
-            AddFeed(AdminOutput, Entry(Loc.T("Msg.Dock"), Loc.T("Msg.SkippedNotInSpace", selected.Count - inSpace.Count), Tone.Muted));
-        RunAdmin(inSpace.Select(b => $"beam {b.Name} {target}").ToArray());
-        Status(Loc.T("Msg.Docking", inSpace.Count, target));
+        RequestFleetAction?.Invoke(false);
     }
 
     // ------------------------------------------------------------------------------------------ comms
@@ -600,29 +592,13 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private void KickSelected() =>
         RunAdmin(Bots.Where(b => b.IsSelected).Select(b => $"kick {b.Name} Test").ToArray());
 
-    private void Distribute(bool selectedOnly)
-    {
-        var bases = DistributeBases.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToArray();
-        var candidates = Bots.Where(b => !selectedOnly || b.IsSelected).ToList();
-        var inSpace = candidates.Where(b => b.State == BotState.InSpace).ToList();
-        string source = Loc.T("Msg.Distribute");
-        if (bases.Length == 0 || inSpace.Count == 0)
-        {
-            AddFeed(AdminOutput, Entry(source, Loc.T(bases.Length == 0 ? "Msg.NoBases" : "Msg.NoBotInSpace"), Tone.Warning));
-            return;
-        }
-        if (inSpace.Count < candidates.Count)
-            AddFeed(AdminOutput, Entry(source, Loc.T("Msg.SkippedNotInSpace", candidates.Count - inSpace.Count), Tone.Muted));
-        RunAdmin(inSpace.Select((b, i) => $"beam {b.Name} {bases[i % bases.Length]}").ToArray());
-        Status(Loc.T("Msg.Distributing", inSpace.Count, Math.Min(bases.Length, inSpace.Count)));
-    }
-
     // ------------------------------------------------------------------------------------------ server log
 
     private void UpdateServerLogWatcher()
     {
         logWatcher?.Dispose();
         logWatcher = null;
+        OnPropertyChanged(nameof(LogMonitoringSummary));
         if (!FollowServerLog)
             return;
         string path = ServerLogPath.Trim();
@@ -631,6 +607,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             AddFeed(ServerLog, Entry(Loc.T("Msg.System"), Loc.T("Msg.FileNotFound", path), Tone.Danger));
             followServerLog = false;
             OnPropertyChanged(nameof(FollowServerLog));
+            OnPropertyChanged(nameof(LogMonitoringSummary));
             return;
         }
         SaveSettings();
@@ -672,6 +649,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         InSpaceCount = snaps.Count(s => s.State == BotState.InSpace);
         DockedCount = snaps.Count(s => s.State == BotState.InBase);
         FailedCount = snaps.Count(s => s.State == BotState.Failed);
+        UpdateInteractionRows();
 
         var selected = ActivitySelectedOnly ? SelectedIndices() : null;
         while (activityQueue.TryDequeue(out var a))
@@ -682,7 +660,10 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         while (chatQueue.TryDequeue(out var c))
             AddFeed(Chat, c);
         while (adminQueue.TryDequeue(out var line))
+        {
             AddFeed(AdminOutput, line);
+            AddActivity(null, line);
+        }
         while (serverLogQueue.TryDequeue(out var l))
         {
             switch (l.Kind)
@@ -762,7 +743,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         settings.ChatIntervalSeconds = ChatIntervalSeconds;
         settings.ChatScript = ChatScript;
         settings.DockTarget = DockTarget.Trim();
-        settings.Save();
+        persistSettings(settings);
     }
 
     /// <summary>Saves the settings, stops following the log and logs out all bots.</summary>
