@@ -46,21 +46,51 @@ public static class Behaviors
     /// <param name="value">True to enable.</param>
     public static void SetAutoScroll(DependencyObject o, bool value) => o.SetValue(AutoScrollProperty, value);
 
+    private static readonly DependencyProperty ScrollSubscriptionProperty = DependencyProperty.RegisterAttached(
+        "ScrollSubscription", typeof(ScrollSubscription), typeof(Behaviors));
+
     private static void OnAutoScrollChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not ListBox list || e.NewValue is not true)
-            return;
-        list.Loaded += (_, _) =>
+        if (d is not ListBox list) return;
+        if (list.GetValue(ScrollSubscriptionProperty) is not ScrollSubscription subscription)
         {
-            if (list.ItemsSource is INotifyCollectionChanged items)
-            {
-                items.CollectionChanged += (_, args) =>
-                {
-                    if (args.Action == NotifyCollectionChangedAction.Add && list.Items.Count > 0)
-                        list.ScrollIntoView(list.Items[^1]);
-                };
-            }
-        };
+            subscription = new ScrollSubscription(list);
+            list.SetValue(ScrollSubscriptionProperty, subscription);
+        }
+        subscription.Update();
+    }
+
+    private sealed class ScrollSubscription
+    {
+        private readonly ListBox list;
+        private INotifyCollectionChanged? source;
+        private readonly System.ComponentModel.DependencyPropertyDescriptor descriptor;
+        public ScrollSubscription(ListBox list)
+        {
+            this.list = list;
+            descriptor = System.ComponentModel.DependencyPropertyDescriptor.FromProperty(ItemsControl.ItemsSourceProperty, typeof(ListBox));
+            list.Loaded += (_, _) => { descriptor.RemoveValueChanged(list, SourceChanged); descriptor.AddValueChanged(list, SourceChanged); Update(); };
+            list.Unloaded += (_, _) => { descriptor.RemoveValueChanged(list, SourceChanged); Detach(); };
+            if (list.IsLoaded) descriptor.AddValueChanged(list, SourceChanged);
+        }
+        private void SourceChanged(object? sender, EventArgs e) => Update();
+        public void Update()
+        {
+            Detach();
+            if (!list.IsLoaded || !GetAutoScroll(list)) return;
+            source = list.ItemsSource as INotifyCollectionChanged;
+            if (source != null) source.CollectionChanged += Changed;
+        }
+        private void Detach()
+        {
+            if (source != null) source.CollectionChanged -= Changed;
+            source = null;
+        }
+        private void Changed(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add && list.Items.Count > 0)
+                list.ScrollIntoView(list.Items[^1]);
+        }
     }
 
     /// <summary>

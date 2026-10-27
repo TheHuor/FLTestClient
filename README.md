@@ -61,18 +61,47 @@ git push origin v1.0.0
 
 ## GUI
 
-- **Fleet:** add bots (account/name prefix, number range, auto launch), see state, system, base,
-  ship, money and ping. For selected bots: launch, dock at a chosen base, distribute across
-  systems, reconnect, disconnect.
-- **Comms:** chat received by all bots; send text or FLHook commands (`/help`) to selected or all bots.
-- **Command:** FLHook admin socket (default `127.0.0.1:9000`, password can be read from `flhook.ini`):
-  `getplayers`, `rehash`, kick, any admin command.
-- **Server log:** follow `FLHook.log` live; time lags, kicks, cheat messages and errors are
-  highlighted and counted.
-- **Settings:** server, bot identity, values for new characters, behaviour (applies live to running
-  bots), paths, theme and language.
+- **Fleet:** add and connect bots, search by name/number/system and filter by state.
+  Filtering clears selection so actions never silently target hidden rows. "Select visible"
+  selects only the filtered rows. Launching into space is a separate action.
+- **Selection:** fleet, chat and admin pages show the selected count and states; expand the
+  summary to inspect names or clear selection.
+- **Relocate / distribute:** choose target bases and inspect each assignment directly from
+  Fleet. FLHook `beam` teleports in-space bots; docked bots are skipped. The preview identifies
+  the admin endpoint and auto-launch setting. Changed/removed bots require a new preview.
+  Command results appear in both fleet activity and the admin console.
+- **Behaviour:** global movement, session cycles, automated chat and launch automation.
+  Changes apply to all running bots. Circle radius takes effect at the next launch;
+  launch automation takes effect at the next docking.
+- **Chat:** the scope selects the bots that **send** the message, not in-game recipients.
+  Quick commands prepare the input; only Send executes it.
+- **Server admin:** admin authentication check, player list, rehash, kick and free console.
+  The check reports its last result and time; each operation uses a separate connection.
+- **Diagnostics:** bot activity, undecoded packets and server log with explicit monitoring
+  state and counters. Auto-scroll can be paused. Changing an actively monitored log path
+  switches the watcher; an invalid path disables monitoring visibly.
+- **Settings:** separate sections for connection, identity, character defaults, local files
+  (with file/folder pickers), appearance and language.
 
-The last inputs (never passwords) are stored in `%APPDATA%\FLTestClient\settings.json`.
+Last inputs (never passwords) are stored in `%APPDATA%\FLTestClient\settings.json`.
+
+### Regression checks
+
+Build and run the dependency-free WPF regression suite without a game server:
+
+```powershell
+dotnet build FLTestClient.slnx -c Release
+& "${env:ProgramFiles(x86)}/dotnet/dotnet.exe" FLTestClient.Gui.Tests/bin/Release/net10.0-windows/FLTestClient.Gui.Tests.dll
+```
+
+The suite checks action plans, invalid arguments, selection/filter changes, log-path changes
+and runtime loading of all views in English/German and dark/bright themes. It injects isolated
+settings and does not persist user settings or contact a game server. CI installs the x86
+Windows Desktop runtime needed to execute it.
+
+Optional `--render ABSOLUTE_OUTPUT_FOLDER` renders the actual views with sample bots in every
+language/theme combination. The test host temporarily creates offscreen windows to complete
+WPF layout before rendering; generated images do not enter the repository.
 
 ### Theme and language
 

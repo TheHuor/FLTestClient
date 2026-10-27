@@ -42,18 +42,7 @@
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Style="{StaticResource StatChip}" Padding="12,6" ToolTip="{DynamicResource Header.ServerTip}">
                         <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="8" Height="8" Margin="0,0,8,0">
-                                <Ellipse.Style>
-                                    <Style TargetType="Ellipse">
-                                        <Setter Property="Fill" Value="{DynamicResource TextMuted}" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                <Setter Property="Fill" Value="{DynamicResource Success}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Ellipse.Style>
-                            </Ellipse>
+                            <TextBlock Text="{DynamicResource Header.GameServer}" Foreground="{DynamicResource TextMuted}" Margin="0,0,8,0" />
                             <TextBlock Text="{Binding ServerDisplay}" FontFamily="{StaticResource MonoFont}" VerticalAlignment="Center" />
                         </StackPanel>
                     </Border>
@@ -90,12 +79,7 @@
                             <TextBlock Text="{DynamicResource Stat.Errors}" Style="{StaticResource StatLabel}" />
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource StatChip}" ToolTip="{DynamicResource Header.TimeLagTip}">
-                        <StackPanel>
-                            <TextBlock Text="{Binding TimeLagCount}" Style="{StaticResource StatValue}" Foreground="{DynamicResource Warning}" />
-                            <TextBlock Text="{DynamicResource Stat.TimeLags}" Style="{StaticResource StatLabel}" />
-                        </StackPanel>
-                    </Border>
+
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -105,14 +89,15 @@
             <TabItem Header="{DynamicResource Nav.Fleet}" Tag="&#xE716;">
                 <views:FleetView />
             </TabItem>
+            <TabItem Header="{DynamicResource Nav.Behaviour}" Tag="&#xE713;"><views:BehaviourView /></TabItem>
             <TabItem Header="{DynamicResource Nav.Comms}" Tag="&#xE8BD;">
                 <views:CommsView />
             </TabItem>
             <TabItem Header="{DynamicResource Nav.Command}" Tag="&#xE756;">
                 <views:CommandView />
             </TabItem>
-            <TabItem Header="{DynamicResource Nav.ServerLog}" Tag="&#xE9D9;">
-                <views:ServerLogView />
+            <TabItem Header="{DynamicResource Nav.Diagnostics}" Tag="&#xE9D9;">
+                <views:DiagnosticsView />
             </TabItem>
             <TabItem Header="{DynamicResource Nav.Settings}" Tag="&#xE713;">
                 <views:SettingsView />

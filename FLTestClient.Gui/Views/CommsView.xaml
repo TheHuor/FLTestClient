@@ -1,7 +1,7 @@
 <UserControl x:Class="FLTestClient.Gui.Views.CommsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:gui="clr-namespace:FLTestClient.Gui">
+             xmlns:gui="clr-namespace:FLTestClient.Gui" xmlns:views="clr-namespace:FLTestClient.Gui.Views">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -12,6 +12,7 @@
         <StackPanel Margin="0,0,0,14">
             <TextBlock Text="{DynamicResource Comms.Title}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{DynamicResource Comms.Subtitle}" Style="{StaticResource Muted}" />
+            <views:SelectionPanel Margin="0,12,0,0" />
         </StackPanel>
 
         <Border Grid.Row="1" Style="{StaticResource Card}">

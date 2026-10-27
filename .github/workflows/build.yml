@@ -25,3 +25,11 @@ jobs:
 
       - name: Build
         run: dotnet build FLTestClient.slnx -c Release
+
+      - name: GUI regression checks (x86)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile "$env:RUNNER_TEMP/dotnet-install.ps1"
+          & "$env:RUNNER_TEMP/dotnet-install.ps1" -Channel 10.0 -Runtime dotnet -Architecture x86 -InstallDir "$env:RUNNER_TEMP/dotnet-x86"
+          & "$env:RUNNER_TEMP/dotnet-install.ps1" -Channel 10.0 -Runtime windowsdesktop -Architecture x86 -InstallDir "$env:RUNNER_TEMP/dotnet-x86"
+          & "$env:RUNNER_TEMP/dotnet-x86/dotnet.exe" FLTestClient.Gui.Tests/bin/Release/net10.0-windows/FLTestClient.Gui.Tests.dll

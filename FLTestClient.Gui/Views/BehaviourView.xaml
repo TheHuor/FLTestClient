@@ -1,0 +1,69 @@
+<UserControl x:Class="FLTestClient.Gui.Views.BehaviourView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <UserControl.Resources><Style x:Key="Field" TargetType="StackPanel"><Setter Property="Margin" Value="0,0,0,10" /></Style></UserControl.Resources><DockPanel>
+  <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+   <TextBlock Text="{DynamicResource Nav.Behaviour}" Style="{StaticResource PageTitle}" />
+   <TextBlock Text="{DynamicResource Behaviour.Subtitle}" Style="{StaticResource Muted}" />
+  </StackPanel>
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+   <Border Style="{StaticResource Card}" MaxWidth="760" HorizontalAlignment="Left">
+    <StackPanel>
+                        <TextBlock Text="{DynamicResource Behaviour.Scope}" Style="{StaticResource CardTitle}" TextWrapping="Wrap" />
+                        <TextBlock Text="{DynamicResource Behaviour.Timing}" Style="{StaticResource Muted}" Margin="0,0,0,16" />
+                        <CheckBox Content="{DynamicResource Set.AutoLaunch}" IsChecked="{Binding AutoLaunch}" Margin="0,0,0,16" />
+
+                        <CheckBox Content="{DynamicResource Set.CircleFlight}" IsChecked="{Binding CircleFlight}" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12" IsEnabled="{Binding CircleFlight}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource Set.Radius}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding CircleRadius}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{DynamicResource Set.Speed}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding CircleSpeed}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox Content="{DynamicResource Set.SessionCycle}" IsChecked="{Binding SessionCycle}" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12" IsEnabled="{Binding SessionCycle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource Set.OnlineMin}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding OnlineMinSeconds}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{DynamicResource Set.OnlineMax}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding OnlineMaxSeconds}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="{DynamicResource Set.Offline}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding OfflineSeconds}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.ChatInterval}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ChatIntervalSeconds}" Width="120" HorizontalAlignment="Left" />
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.ChatScript}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ChatScript}" AcceptsReturn="True" Height="90" VerticalScrollBarVisibility="Auto"
+                                     FontFamily="{StaticResource MonoFont}" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Muted}" Text="{DynamicResource Set.BehaviourHint}" />
+</StackPanel>
+   </Border>
+  </ScrollViewer>
+ </DockPanel>
+</UserControl>

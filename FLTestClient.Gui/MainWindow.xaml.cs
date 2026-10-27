@@ -18,6 +18,7 @@ public partial class MainWindow : Window
         viewModel.ThemeChanged += App.ApplyTheme;
         viewModel.LanguageChanged += App.ApplyLanguage;
         SourceInitialized += (_, _) => App.SetDarkTitleBar(this, viewModel.IsDarkTheme);
+        viewModel.RequestFleetAction += distribute => new Views.FleetActionWindow(viewModel, distribute) { Owner = this }.ShowDialog();
         Closed += (_, _) => viewModel.Dispose();
     }
 }
