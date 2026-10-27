@@ -79,7 +79,7 @@ public partial class FleetView
     private ContextMenu CreateBotMenu(BotRowViewModel row)
     {
         var menu = new ContextMenu { Style = (Style)FindResource("BotContextMenu") };
-        menu.Items.Add(new MenuItem { Header = Loc.T("Cards.ContextScope", row.Name), IsEnabled = false });
+        menu.Items.Add(new MenuItem { Header = Loc.T("Cards.ContextScope", row.Name), IsEnabled = false, Style = (Style)FindResource("BotMenuItem") });
         Add(menu, "Fleet.Launch", Model!.BotLaunchCommand, row);
         Add(menu, "Fleet.Dock", Model.ShowBotActionsCommand, row);
         Add(menu, "Cards.OpenChat", Model.ShowBotChatCommand, row);
@@ -91,7 +91,7 @@ public partial class FleetView
 
     private static void Add(ContextMenu menu, string key, ICommand command, object? parameter = null)
     {
-        var item = new MenuItem { Header = Loc.T(key), Command = command, CommandParameter = parameter };
+        var item = new MenuItem { Header = Loc.T(key), Command = command, CommandParameter = parameter, Style = (Style)menu.FindResource("BotMenuItem") };
         if (key == "Fleet.Disconnect") item.SetResourceReference(ForegroundProperty, "Danger");
         menu.Items.Add(item);
     }
@@ -100,7 +100,7 @@ public partial class FleetView
     {
         if (sender is not Button button || Model == null) return;
         var menu = new ContextMenu { PlacementTarget = button, Placement = PlacementMode.Top, Style = (Style)FindResource("BotContextMenu") };
-        menu.Items.Add(new MenuItem { Header = Model.SelectionSummary, IsEnabled = false });
+        menu.Items.Add(new MenuItem { Header = Model.SelectionSummary, IsEnabled = false, Style = (Style)FindResource("BotMenuItem") });
         Add(menu, "Fleet.Launch", Model.LaunchSelectedCommand);
         Add(menu, "Fleet.Dock", Model.DockSelectedCommand);
         Add(menu, "Fleet.Distribute", Model.DistributeSelectedCommand);

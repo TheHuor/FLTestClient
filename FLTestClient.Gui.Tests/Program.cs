@@ -231,6 +231,7 @@ internal static class Program
             vm.Bots.Add(a); vm.Bots.Add(b); a.IsSelected = true;
             var view = new FleetView { DataContext = vm };
             var menu = (ContextMenu)typeof(FleetView).GetMethod("CreateBotMenu", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(view, new object[] { b })!;
+            menu.Measure(new Size(320, 400)); menu.Arrange(new Rect(0, 0, 320, 400)); menu.UpdateLayout();
             var actions = menu.Items.OfType<MenuItem>().Where(item => item.Command != null).ToArray();
             Check(actions.Length == 5 && actions.All(item => ReferenceEquals(item.CommandParameter, b)), "Menu used shared bulk selection");
         });

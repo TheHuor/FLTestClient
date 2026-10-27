@@ -41,6 +41,7 @@ Artifacts remain local in the session visualization folder; no sample screenshot
   FleetView layout, now only user table interaction changes focus.
 - P2: keyboard menu used old inspector focus instead of current table row. Target resolver
   now derives keyboard scope from CurrentItem; regression check passes.
+- P2: actual context-menu layout applied a MenuItem style to separators. The menu-layout regression reproduced the failure; entries now receive their style individually and the full suite passes.
 - Visual: square selection boxes replace global switch styling on bot cards. Search hint,
   compact header, neutral bot names and explicit endpoint headings match the intended hierarchy.
 
