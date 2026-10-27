@@ -93,6 +93,9 @@ public sealed class GuiSettings
     /// <summary>Last target base for "Dock at base".</summary>
     public string DockTarget { get; set; } = "Li01_01_Base";
 
+    /// <summary>Prefer compact fleet cards over the table.</summary>
+    public bool CardsView { get; set; } = true;
+
     /// <summary>Dark (true) or bright theme.</summary>
     public bool DarkTheme { get; set; } = true;
 

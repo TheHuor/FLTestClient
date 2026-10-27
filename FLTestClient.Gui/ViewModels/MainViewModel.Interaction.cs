@@ -64,6 +64,7 @@ public sealed partial class MainViewModel
     {
         foreach (var b in Bots) b.IsSelected = false;
         FleetRows.Refresh();
+        ValidateFocusedBot();
         NotifyInteraction();
     }
 
@@ -81,6 +82,7 @@ public sealed partial class MainViewModel
             b.PropertyChanged += OnRowChanged;
             observedRows.Add(b);
         }
+        ValidateFocusedBot();
         NotifyInteraction();
     }
 
@@ -90,6 +92,7 @@ public sealed partial class MainViewModel
         {
             if (sender is BotRowViewModel b && !MatchesFleet(b)) b.IsSelected = false;
             FleetRows.Refresh();
+            ValidateFocusedBot();
         }
         if (e.PropertyName is nameof(BotRowViewModel.IsSelected) or nameof(BotRowViewModel.State)) NotifyInteraction();
     }

@@ -505,4 +505,62 @@
         <Setter Property="FontSize" Value="11" />
         <Setter Property="HorizontalAlignment" Value="Center" />
     </Style>
+
+    <Style x:Key="PageTabItem" TargetType="TabItem">
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem">
+            <Border x:Name="TabBorder" BorderThickness="0,0,0,2" BorderBrush="Transparent" Background="Transparent" Padding="{TemplateBinding Padding}">
+                <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" TextElement.FontSize="14" />
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsSelected" Value="True"><Setter Property="Foreground" Value="{DynamicResource Accent}" /><Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource Accent}" /></Trigger>
+                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Foreground" Value="{DynamicResource TextPrimary}" /></Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource AccentSoft}" /></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="PageTabs" TargetType="TabControl">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="ItemContainerStyle" Value="{StaticResource PageTabItem}" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabControl">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource PanelBorder}" BorderThickness="0,0,0,1" Margin="0,0,0,16">
+                    <TabPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1" />
+                </Border>
+                <ContentPresenter ContentSource="SelectedContent" />
+            </DockPanel>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+
+
+    <Style x:Key="BotSelectionBox" TargetType="CheckBox">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox">
+            <Border x:Name="Box" Width="18" Height="18" CornerRadius="3" Background="Transparent" BorderBrush="{DynamicResource TextMuted}" BorderThickness="1">
+                <TextBlock x:Name="Tick" Text="&#xE73E;" FontFamily="{StaticResource IconFont}" FontSize="12" Foreground="{DynamicResource Accent}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsChecked" Value="True"><Setter TargetName="Tick" Property="Visibility" Value="Visible"/><Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Accent}"/><Setter TargetName="Box" Property="Background" Value="{DynamicResource AccentSoft}"/></Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource TextPrimary}"/><Setter TargetName="Box" Property="BorderThickness" Value="2"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="BotContextMenu" TargetType="ContextMenu">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+        <Setter Property="Background" Value="{DynamicResource InputBackground}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PanelBorder}"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ContextMenu">
+            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="5"><StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/></Border>
+        </ControlTemplate></Setter.Value></Setter>
+        <Setter Property="ItemContainerStyle"><Setter.Value><Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="MenuItem">
+                <Border x:Name="Item" Padding="12,8" CornerRadius="3" Background="Transparent"><ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/></Border>
+                <ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource RowHover}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger></ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style></Setter.Value></Setter>
+    </Style>
 </ResourceDictionary>

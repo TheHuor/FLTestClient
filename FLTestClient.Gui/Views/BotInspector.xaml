@@ -1,0 +1,45 @@
+<UserControl x:Class="FLTestClient.Gui.Views.BotInspector"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:gui="clr-namespace:FLTestClient.Gui">
+ <Border BorderBrush="{DynamicResource PanelBorder}" BorderThickness="1,0,0,0" Padding="16,0,0,0">
+  <DockPanel>
+   <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+    <DockPanel><Button DockPanel.Dock="Right" Content="{DynamicResource Common.Close}" Command="{Binding CloseInspectorCommand}" Padding="6,3" Margin="6,0,0,0"/>
+     <TextBlock Text="{Binding FocusedBot.Name}" Foreground="{DynamicResource TextPrimary}" FontSize="21" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/></DockPanel>
+    <TextBlock Text="{Binding FocusedBot.StateLabel}" Foreground="{DynamicResource Accent}" Margin="0,6,0,0"/>
+   </StackPanel>
+   <TabControl x:Name="InspectorTabs" Style="{StaticResource PageTabs}" SelectedIndex="{Binding InspectorPageIndex}">
+    <TabItem Header="{DynamicResource Inspector.Details}"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+     <TextBlock Text="{DynamicResource Col.System}" Style="{StaticResource FieldLabel}"/><TextBlock Text="{Binding FocusedBot.System}" Margin="0,0,0,14" TextWrapping="Wrap"/>
+     <TextBlock Text="{DynamicResource Col.Base}" Style="{StaticResource FieldLabel}"/><TextBlock Text="{Binding FocusedBot.Base}" Margin="0,0,0,14" TextWrapping="Wrap"/>
+     <TextBlock Text="{DynamicResource Col.Ping}" Style="{StaticResource FieldLabel}"/><TextBlock Text="{Binding FocusedBot.Ping}" Margin="0,0,0,14"/>
+     <TextBlock Text="{DynamicResource Col.Credits}" Style="{StaticResource FieldLabel}"/><TextBlock Text="{Binding FocusedBot.Cash}" Margin="0,0,0,14"/>
+     <TextBlock Text="{DynamicResource Col.Ship}" Style="{StaticResource FieldLabel}"/><TextBlock Text="{Binding FocusedBot.Ship}" Margin="0,0,0,14"/>
+     <TextBlock Text="{DynamicResource Col.Unknown}" Style="{StaticResource FieldLabel}"/><TextBlock Text="{Binding FocusedBot.Unknown}" Margin="0,0,0,14"/>
+     <Button Content="{DynamicResource Inspector.Actions}" Command="{Binding ShowBotActionsCommand}" CommandParameter="{Binding FocusedBot}" HorizontalAlignment="Left"/>
+    </StackPanel></ScrollViewer></TabItem>
+    <TabItem Header="{DynamicResource Nav.Comms}"><DockPanel>
+     <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+      <TextBlock Text="{DynamicResource Inspector.ChatScope}" Style="{StaticResource Muted}" Margin="0,0,0,8"/>
+      <TextBox Text="{Binding FocusedChatInput, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{DynamicResource Inspector.ChatScope}"><TextBox.InputBindings><KeyBinding Key="Enter" Command="{Binding SendFocusedChatCommand}"/></TextBox.InputBindings></TextBox>
+      <Button Content="{DynamicResource Comms.Send}" Command="{Binding SendFocusedChatCommand}" Margin="0,8,0,0" HorizontalAlignment="Right"/>
+     </StackPanel>
+     <ListBox ItemsSource="{Binding FocusedChat}" Style="{StaticResource FeedList}" gui:Behaviors.AutoScroll="True"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Text}" Style="{StaticResource ToneText}" Margin="0,4"/></DataTemplate></ListBox.ItemTemplate></ListBox>
+    </DockPanel></TabItem>
+    <TabItem Header="{DynamicResource Inspector.Actions}"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+     <Button Content="{DynamicResource Fleet.Launch}" Command="{Binding BotLaunchCommand}" CommandParameter="{Binding FocusedBot}" HorizontalAlignment="Left" Margin="0,0,0,16"/>
+     <TextBlock Text="{DynamicResource Fleet.Dock}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+     <TextBlock Text="{DynamicResource Inspector.BeamHint}" Style="{StaticResource Muted}" Margin="0,0,0,12"/>
+     <TextBlock Text="{DynamicResource Fleet.DockTarget}" Style="{StaticResource FieldLabel}"/>
+     <ComboBox ItemsSource="{Binding BaseList}" Text="{Binding DockTarget, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsTextSearchEnabled="True" AutomationProperties.Name="{DynamicResource Fleet.DockTarget}"/>
+     <TextBlock Text="{Binding FocusedRelocationSummary}" Style="{StaticResource Muted}" Margin="0,10,0,8"/>
+     <TextBlock Text="{Binding AutoLaunchSummary}" Foreground="{DynamicResource Warning}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+     <Button Content="{DynamicResource Inspector.Relocate}" Command="{Binding RelocateFocusedCommand}" Style="{StaticResource AccentButton}" Margin="0,0,0,20"/>
+     <Border Height="1" Background="{DynamicResource PanelBorder}" Margin="0,0,0,16"/>
+     <Button Content="{DynamicResource Fleet.Reconnect}" Command="{Binding BotReconnectCommand}" CommandParameter="{Binding FocusedBot}" HorizontalAlignment="Left" Margin="0,0,0,16"/>
+     <Button Content="{DynamicResource Fleet.Disconnect}" Command="{Binding BotRemoveCommand}" CommandParameter="{Binding FocusedBot}" Style="{StaticResource DangerButton}" HorizontalAlignment="Left"/>
+    </StackPanel></ScrollViewer></TabItem>
+   </TabControl>
+  </DockPanel>
+ </Border>
+</UserControl>

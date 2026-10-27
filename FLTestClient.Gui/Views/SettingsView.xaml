@@ -1,41 +1,19 @@
 <UserControl x:Class="FLTestClient.Gui.Views.SettingsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:gui="clr-namespace:FLTestClient.Gui">
-    <UserControl.Resources>
-        <Style x:Key="SettingsCard" TargetType="Border" BasedOn="{StaticResource Card}">
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="Margin" Value="0,0,0,14" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-        </Style>
-        <Style x:Key="Field" TargetType="StackPanel">
-            <Setter Property="Margin" Value="0,0,0,10" />
-        </Style>
-    </UserControl.Resources>
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
-            <TextBlock Text="{DynamicResource Set.Title}" Style="{StaticResource PageTitle}" />
-            <TextBlock Text="{DynamicResource Set.Subtitle}" Style="{StaticResource Muted}" />
-        </StackPanel>
-        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
-            <TextBlock Text="{DynamicResource Set.Section}" Style="{StaticResource FieldLabel}" />
-            <ComboBox x:Name="SectionPicker" SelectedIndex="0" Width="280" HorizontalAlignment="Left">
-                <ComboBoxItem Content="{DynamicResource Set.SectionServer}" />
-                <ComboBoxItem Content="{DynamicResource Set.SectionIdentity}" />
-                <ComboBoxItem Content="{DynamicResource Set.SectionCharacters}" />
-                <ComboBoxItem Content="{DynamicResource Set.SectionFiles}" />
-                <ComboBoxItem Content="{DynamicResource Set.SectionAppearance}" />
-            </ComboBox>
-        </StackPanel>
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
-                <!-- Server -->
-                <Border><Border.Style><Style TargetType="Border" BasedOn="{StaticResource SettingsCard}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SectionPicker}" Value="0"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
-                </Style></Border.Style>
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:gui="clr-namespace:FLTestClient.Gui">
+ <UserControl.Resources>
+  <Style x:Key="SettingsCard" TargetType="Border" BasedOn="{StaticResource Card}"><Setter Property="VerticalAlignment" Value="Top"/><Setter Property="Margin" Value="0,0,0,16"/></Style>
+  <Style x:Key="Field" TargetType="StackPanel"><Setter Property="Margin" Value="0,0,0,12"/></Style>
+ </UserControl.Resources>
+ <DockPanel>
+  <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Set.Title}" Style="{StaticResource PageTitle}" Margin="0,0,0,10" />
+  <TextBlock DockPanel.Dock="Bottom" Text="{DynamicResource Settings.Persistence}" Style="{StaticResource Muted}" Margin="0,12,0,0" />
+  <TabControl x:Name="SettingsTabs" Style="{StaticResource PageTabs}" SelectedIndex="{Binding SettingsPageIndex}">
+   <TabItem Header="{DynamicResource Settings.Connection}"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+     <ContentControl ContentTemplate="{x:Null}"><Border Style="{StaticResource SettingsCard}">
                     <StackPanel IsEnabled="{Binding CanEditConnection}">
-                        <TextBlock Text="{DynamicResource Set.Server}" Style="{StaticResource CardTitle}" />
+                        <TextBlock Text="{DynamicResource Settings.GameServer}" Style="{StaticResource CardTitle}" />
                         <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -57,13 +35,45 @@
                         </StackPanel>
                         <TextBlock Style="{StaticResource Muted}" Text="{DynamicResource Set.LoopbackHint}" />
                     </StackPanel>
-                </Border>
-
-                <!-- Bot identity -->
-                <Border><Border.Style><Style TargetType="Border" BasedOn="{StaticResource SettingsCard}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SectionPicker}" Value="1"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
-                </Style></Border.Style>
+                </Border></ContentControl>
+     <ContentControl Grid.Column="2"><Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource Settings.AdminServer}" Style="{StaticResource CardTitle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="90" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource Cmd.Host}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding AdminHost, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{DynamicResource Cmd.Port}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding AdminPort, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="{DynamicResource Cmd.Password}" Style="{StaticResource FieldLabel}" Margin="0,10,0,4" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <PasswordBox gui:Behaviors.BoundPassword="{Binding AdminPassword}" />
+                            <Button Grid.Column="1" Content="{DynamicResource Cmd.FromIni}" Command="{Binding LoadAdminPasswordCommand}" Margin="8,0,0,0"
+                                    ToolTip="{DynamicResource Cmd.FromIniTip}" />
+                        </Grid>
+                    <WrapPanel Margin="0,14,0,0"><Button Content="{DynamicResource Admin.Check}" Command="{Binding CheckAdminCommand}"/>
+                        <TextBlock Text="{Binding AdminCheckSummary}" Style="{StaticResource Muted}" MaxWidth="190" VerticalAlignment="Center"/></WrapPanel>
+                    </StackPanel>
+                </Border></ContentControl>
+    </Grid>
+    <TextBlock Text="{DynamicResource Set.Subtitle}" Style="{StaticResource Muted}" />
+   </StackPanel></ScrollViewer></TabItem>
+   <TabItem Header="{DynamicResource Settings.Bots}"><ScrollViewer VerticalScrollBarVisibility="Auto"><Grid>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    <ContentControl><Border Style="{StaticResource SettingsCard}">
                     <StackPanel IsEnabled="{Binding CanEditConnection}">
                         <TextBlock Text="{DynamicResource Set.Identity}" Style="{StaticResource CardTitle}" />
                         <StackPanel Style="{StaticResource Field}">
@@ -75,13 +85,7 @@
                             <TextBox Text="{Binding NamePrefix}" />
                         </StackPanel>
                     </StackPanel>
-                </Border>
-
-                <!-- New characters (newcharacter.ini) -->
-                <Border><Border.Style><Style TargetType="Border" BasedOn="{StaticResource SettingsCard}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SectionPicker}" Value="2"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
-                </Style></Border.Style>
+                </Border></ContentControl><ContentControl Grid.Column="2"><Border Style="{StaticResource SettingsCard}">
                     <StackPanel IsEnabled="{Binding CanEditConnection}">
                         <TextBlock Text="{DynamicResource Set.NewChars}" Style="{StaticResource CardTitle}" />
                         <Grid>
@@ -117,13 +121,9 @@
                         </Grid>
                         <TextBlock Style="{StaticResource Muted}" Text="{DynamicResource Set.NewCharHint}" />
                     </StackPanel>
-                </Border>
-
-                <!-- Paths -->
-                <Border><Border.Style><Style TargetType="Border" BasedOn="{StaticResource SettingsCard}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SectionPicker}" Value="3"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
-                </Style></Border.Style>
+                </Border></ContentControl>
+   </Grid></ScrollViewer></TabItem>
+   <TabItem Header="{DynamicResource Set.SectionFiles}"><ScrollViewer VerticalScrollBarVisibility="Auto"><Border Style="{StaticResource SettingsCard}">
                     <StackPanel>
                         <TextBlock Text="{DynamicResource Set.Paths}" Style="{StaticResource CardTitle}" />
                         <StackPanel Style="{StaticResource Field}" IsEnabled="{Binding CanEditConnection}">
@@ -139,13 +139,8 @@
                             <DockPanel><Button DockPanel.Dock="Right" Content="{DynamicResource Common.Browse}" Click="BrowsePath" Tag="log" Margin="8,0,0,0" /><TextBox Text="{Binding ServerLogPath}" /></DockPanel>
                         </StackPanel>
                     </StackPanel>
-                </Border>
-
-                <!-- Appearance and language -->
-                <Border><Border.Style><Style TargetType="Border" BasedOn="{StaticResource SettingsCard}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SectionPicker}" Value="4"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
-                </Style></Border.Style>
+                </Border></ScrollViewer></TabItem>
+   <TabItem Header="{DynamicResource Set.SectionAppearance}"><ScrollViewer VerticalScrollBarVisibility="Auto"><Border Style="{StaticResource SettingsCard}">
                     <StackPanel>
                         <TextBlock Text="{DynamicResource Set.Appearance}" Style="{StaticResource CardTitle}" />
                         <CheckBox Content="{DynamicResource Set.DarkTheme}" IsChecked="{Binding IsDarkTheme}" Margin="0,0,0,14" />
@@ -160,8 +155,7 @@
                         </Border>
                         <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0" Text="{DynamicResource Set.ThemeHint}" />
                     </StackPanel>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
-    </DockPanel>
+                </Border></ScrollViewer></TabItem>
+  </TabControl>
+ </DockPanel>
 </UserControl>
