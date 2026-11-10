@@ -16,6 +16,11 @@ internal static class ClientOp
 {
     /// <summary>LOGIN: create flag, account, password.</summary>
     public const int Login = 0x01;
+    /// <summary>
+    /// MUNCOLLISION: munition archetype, shooter object, object hit, u16 sub-object, hit position
+    /// (FRpcMunitionCollisionPacket; IServerImpl::SPMunitionCollision).
+    /// </summary>
+    public const int MunCollision = 0x03;
     /// <summary>REQUESTLAUNCH: ship ID.</summary>
     public const int RequestLaunch = 0x04;
     /// <summary>REQUESTCHARINFO: no payload.</summary>
@@ -49,6 +54,11 @@ internal static class ServerOp
     public const int CharacterInfo = 0x03;
     /// <summary>CREATESHIP: object ID first, then a long variable part.</summary>
     public const int CreateShip = 0x04;
+    /// <summary>
+    /// DAMAGEOBJECT: object, byte destroyed, cause, inflictor, u16 count, then per entry u16 sub-object,
+    /// byte fate, float hit points (FRpcServerDamageObjectPacket).
+    /// </summary>
+    public const int DamageObject = 0x05;
     /// <summary>DESTROYOBJECT: object ID, byte.</summary>
     public const int DestroyObject = 0x06;
     /// <summary>LAUNCH: ship, base, state, position, orientation.</summary>
@@ -65,6 +75,11 @@ internal static class ServerOp
     public const int RequestCreateShipResp = 0x27;
     /// <summary>SETCASH: money.</summary>
     public const int SetCash = 0x30;
+    /// <summary>
+    /// CREATEGUIDED: u16 small archetype ID, owner, u16 sub-object, target, u16 target sub-object, object,
+    /// position, quaternion as four bytes (FRpcServerCreateGuidedPacket).
+    /// </summary>
+    public const int CreateGuided = 0x37;
 }
 
 /// <summary>Opcodes of the COMMON channel that the bot uses.</summary>

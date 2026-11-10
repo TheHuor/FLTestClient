@@ -177,6 +177,8 @@ public sealed class Bot : IDisposable
     private double nextChatAt = -1;
     private Vector3 circleCenter, circleU, circleV, departureDirection;
     private double circleRadius, circleAngle, lastMoveTime, departureLeft;
+    // Last position of every object the server forwarded an UPDATEOBJECT for (other players' ships).
+    private readonly Dictionary<uint, Vector3> knownObjects = new();
 
     /// <summary>Bot number; determines account and character name.</summary>
     public int Index { get; }
@@ -567,10 +569,17 @@ public sealed class Bot : IDisposable
                 case ServerOp.SetCash:
                     Cash = r.U32();
                     return true;
+                case ServerOp.DamageObject:
+                    OnDamageObject(r);
+                    return true;
+                case ServerOp.CreateGuided:
+                    OnCreateGuided(r);
+                    return true;
                 case ServerOp.DestroyObject:
                 {
                     uint obj = r.U32();
                     r.U8();
+                    knownObjects.Remove(obj);
                     if (obj == ShipId && State == BotState.InSpace)
                     {
                         // Like a player after death: respawn at the last base a few seconds later.
@@ -589,11 +598,14 @@ public sealed class Bot : IDisposable
             {
                 case CommonOp.UpdateObject:
                 {
-                    // Position updates of other ships; only decoded for verbose logging.
+                    // Position updates of other players' ships (StarSystem::sp_obj_update forwards them);
+                    // remembered as targets for ReportHit.
                     r.U8();
                     uint obj = r.U32();
                     var pos = r.Vec();
                     r.Skip(4 + 1 + 4);
+                    if (obj != ShipId)
+                        knownObjects[obj] = pos;
                     if (opt.Verbose)
                         Logged?.Invoke(this, LogLevel.Info, $"   object {obj} at ({pos.X:F0}, {pos.Y:F0}, {pos.Z:F0})");
                     return true;
@@ -829,6 +841,7 @@ public sealed class Bot : IDisposable
         lastUpdate = 0;
         lastMoveTime = spaceStart;
         RoomId = 0;
+        knownObjects.Clear();
         PlanCircle();
     }
 
@@ -852,6 +865,99 @@ public sealed class Bot : IDisposable
     }
 
     private static byte Quantize(float v) => unchecked((byte)(sbyte)(int)(v * 127.0));
+
+    // ---------------------------------------------------------------- damage and hits
+
+    // FRpcServerDamageObjectPacket: the server's result of a hit. Only the own ship is logged, so the log
+    // shows whether a shot at the bot reached the server and what it did.
+    private void OnDamageObject(PacketReader r)
+    {
+        uint obj = r.U32();
+        bool destroyed = r.U8() != 0;
+        uint cause = r.U32();
+        uint inflictor = r.U32();
+        int count = r.U16();
+        var entries = new StringBuilder();
+        for (int i = 0; i < count; i++)
+        {
+            ushort subObject = r.U16();
+            r.U8(); // fate
+            float hitPoints = r.F32();
+            if (entries.Length > 0)
+                entries.Append(", ");
+            entries.Append(string.Format(Texts.Culture, "{0}: {1:F1}", subObject, hitPoints));
+        }
+        if (obj == ShipId && ShipId != 0)
+            Log(LogLevel.Event, destroyed ? "Bot.DamagedDestroyed" : "Bot.Damaged", inflictor, cause, entries.ToString());
+        else if (opt.Verbose)
+            Logged?.Invoke(this, LogLevel.Info, $"   damage object {obj} by {inflictor} (cause {cause}): {entries}");
+    }
+
+    // FRpcServerCreateGuidedPacket: a missile or torpedo. In multiplayer only the client that owns the ship
+    // that is hit reports the hit (FClientGuidedGameobj::Slot1ac), so a bot does not take damage from
+    // guided munitions; the log line makes that visible.
+    private void OnCreateGuided(PacketReader r)
+    {
+        ushort smallArchetype = r.U16();
+        uint owner = r.U32();
+        r.U16(); // owner sub-object
+        uint target = r.U32();
+        r.U16(); // target sub-object
+        uint obj = r.U32();
+        r.Vec();
+        r.Skip(4); // orientation
+        if (target == ShipId && ShipId != 0)
+            Log(LogLevel.Event, "Bot.GuidedIncoming", obj, owner, smallArchetype);
+    }
+
+    /// <summary>Objects whose position the server forwarded (ships of other players) and their last position.</summary>
+    public IReadOnlyDictionary<uint, Vector3> KnownObjects => knownObjects;
+
+    /// <summary>The known object closest to the own ship.</summary>
+    /// <returns>Object ID or 0 if none is known.</returns>
+    public uint NearestKnownObject()
+    {
+        uint nearest = 0;
+        float best = float.MaxValue;
+        foreach (var (obj, pos) in knownObjects)
+        {
+            float distance = Vector3.DistanceSquared(pos, Position);
+            if (distance < best)
+            {
+                best = distance;
+                nearest = obj;
+            }
+        }
+        return nearest;
+    }
+
+    /// <summary>
+    /// Reports a hit of the own munition on another object, exactly as the client of a shooter does for a gun
+    /// hit (FClientBeamGameobj::Slot1ac, CLIENT MUNCOLLISION). The server then applies the damage of the
+    /// munition (StarSystem::munition_collision), including player versus player damage.
+    /// </summary>
+    /// <remarks>
+    /// The server looks the archetype up without a null check, so <paramref name="munitionId"/> must be the
+    /// hash of a <c>[Munition]</c> nickname that exists in the server's data.
+    /// </remarks>
+    /// <param name="targetId">Object ID of the ship that is hit.</param>
+    /// <param name="munitionId">Nickname hash of the munition, e.g. <c>FLHash.CreateID("li_gun01_mark01_ammo")</c>.</param>
+    /// <param name="subObjectId">Sub-object that is hit; 1 is the hull (root).</param>
+    /// <returns>False if the bot is not in space.</returns>
+    public bool ReportHit(uint targetId, uint munitionId, ushort subObjectId = 1)
+    {
+        if (State != BotState.InSpace || ShipId == 0)
+        {
+            Log(LogLevel.Error, "Bot.HitNotInSpace");
+            return false;
+        }
+        var hitPosition = knownObjects.TryGetValue(targetId, out var pos) ? pos : Position;
+        var w = new PacketWriter(Ch.Client, ClientOp.MunCollision)
+            .U32(munitionId).U32(ShipId).U32(targetId).U16(subObjectId).Vec(hitPosition);
+        Send(w);
+        Log(LogLevel.Event, "Bot.HitReported", targetId, munitionId, subObjectId);
+        return true;
+    }
 
     // ---------------------------------------------------------------- chat
 
