@@ -81,6 +81,64 @@ public sealed class BotManager : IDisposable
     /// <returns>The bot or null.</returns>
     public Bot? Find(int index) => bots.FirstOrDefault(b => b.Index == index);
 
+    /// <summary>
+    /// Resolves the target of a hit report. Only call on the network thread.
+    /// </summary>
+    /// <param name="shooter">Bot that reports the hit.</param>
+    /// <param name="victim">Object ID, <c>bot:N</c> (ship of bot N) or <c>nearest</c> (closest known player ship).</param>
+    /// <returns>Object ID or 0 if the target is unknown.</returns>
+    public uint ResolveHitTarget(Bot shooter, string victim)
+    {
+        victim = victim.Trim();
+        if (victim.Equals("nearest", StringComparison.OrdinalIgnoreCase))
+            return shooter.NearestKnownObject();
+        if (victim.StartsWith("bot:", StringComparison.OrdinalIgnoreCase))
+            return int.TryParse(victim[4..], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int index)
+                ? Find(index)?.ShipId ?? 0
+                : 0;
+        return uint.TryParse(victim, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out uint objectId)
+            ? objectId
+            : 0;
+    }
+
+    /// <summary>
+    /// Lets a bot report <paramref name="count"/> hits of a munition on a target (see <see cref="Bot.ReportHit"/>).
+    /// Only call on the network thread.
+    /// </summary>
+    /// <param name="shooter">Bot that reports the hits.</param>
+    /// <param name="victim">Target as accepted by <see cref="ResolveHitTarget"/>.</param>
+    /// <param name="munition">Nickname of a <c>[Munition]</c> or its hash as <c>0x</c> hex number.</param>
+    /// <param name="count">Number of hits.</param>
+    public void ReportHits(Bot shooter, string victim, string munition, int count)
+    {
+        munition = munition.Trim();
+        uint munitionId = munition.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            && uint.TryParse(munition[2..], System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out uint hash)
+            ? hash
+            : FLHash.CreateID(munition);
+        uint targetId = ResolveHitTarget(shooter, victim);
+        if (targetId == 0)
+        {
+            shooter.Log(LogLevel.Error, "Bot.NoTarget", victim);
+            return;
+        }
+        for (int shot = 0; shot < count; shot++)
+        {
+            if (!shooter.ReportHit(targetId, munitionId))
+                break;
+        }
+    }
+
+    /// <summary>Logs the player ships a bot knows, nearest first. Only call on the network thread.</summary>
+    /// <param name="bot">Bot.</param>
+    public static void LogKnownObjects(Bot bot)
+    {
+        if (bot.KnownObjects.Count == 0)
+            bot.Log(LogLevel.Info, "Bot.NoKnownObjects");
+        foreach (var (obj, pos) in bot.KnownObjects.OrderBy(entry => System.Numerics.Vector3.Distance(entry.Value, bot.Position)))
+            bot.Log(LogLevel.Info, "Bot.KnownObject", obj, pos.X, pos.Y, pos.Z, System.Numerics.Vector3.Distance(pos, bot.Position));
+    }
+
     /// <summary>Disconnects a bot cleanly and removes it. Only call on the network thread.</summary>
     /// <param name="bot">Bot.</param>
     public void Remove(Bot bot)

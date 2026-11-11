@@ -10,6 +10,8 @@ public sealed partial class MainViewModel
     private bool useCardView = true, isInspectorOpen;
     private int mainPageIndex, settingsPageIndex, inspectorPageIndex;
     private string focusedChatInput = "";
+    private string hitVictim = "nearest", hitMunition = "fc_j_gun01_mark01_ammo";
+    private int hitCount = 3;
 
     /// <summary>Raised to open the compact bot creation form.</summary>
     public event Action? RequestAddBots;
@@ -79,6 +81,16 @@ public sealed partial class MainViewModel
     public ICommand RelocateFocusedCommand { get; private set; } = null!;
     /// <summary>Sends chat through only the bot named in the inspector.</summary>
     public ICommand SendFocusedChatCommand { get; private set; } = null!;
+    /// <summary>Hit target for PvP tests: object ID, <c>bot:N</c> or <c>nearest</c>.</summary>
+    public string HitVictim { get => hitVictim; set => Set(ref hitVictim, value); }
+    /// <summary>Munition nickname (or <c>0x</c> hash) of reported hits; must exist in the server data.</summary>
+    public string HitMunition { get => hitMunition; set => Set(ref hitMunition, value); }
+    /// <summary>Number of hits per report, 1 to 100.</summary>
+    public int HitCount { get => hitCount; set => Set(ref hitCount, Math.Clamp(value, 1, 100)); }
+    /// <summary>Lets the inspected bot report hits on <see cref="HitVictim"/> like a shooter's client.</summary>
+    public ICommand ReportHitsFocusedCommand { get; private set; } = null!;
+    /// <summary>Logs the player ships the inspected bot knows, with object ID and distance.</summary>
+    public ICommand ListKnownShipsFocusedCommand { get; private set; } = null!;
 
     private void InitializeFleetPresentation()
     {
@@ -102,6 +114,15 @@ public sealed partial class MainViewModel
             }
             catch (ArgumentException e) { Status(Loc.T(e.Message)); }
         }, CanRelocateFocused);
+        ReportHitsFocusedCommand = new RelayCommand(() =>
+        {
+            string victim = HitVictim.Trim(), munition = HitMunition.Trim();
+            int count = HitCount;
+            ForBot(FocusedBot, (m, bot) => m.ReportHits(bot, victim, munition, count), "Act.ReportHits");
+        }, () => FocusedBot != null && HasBot(FocusedBot) && FocusedBot.State == BotState.InSpace
+                 && HitVictim.Trim().Length > 0 && HitMunition.Trim().Length > 0);
+        ListKnownShipsFocusedCommand = new RelayCommand(() => ForBot(FocusedBot, (_, bot) => BotManager.LogKnownObjects(bot), "Act.ListShips"),
+            () => FocusedBot != null && HasBot(FocusedBot) && FocusedBot.State == BotState.InSpace);
         SendFocusedChatCommand = new RelayCommand(SendFocusedChat,
             () => FocusedBot != null && HasBot(FocusedBot) && manager != null && FocusedChatInput.Trim().Length > 0);
     }

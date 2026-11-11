@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
-using System.Numerics;
 using FLTestClient;
 
 // --lang first, so that --help and error messages already use the right language.
@@ -228,13 +227,7 @@ bool RunCommand(string cmd)
             ForTargets(parts[1], (m, bot) => m.Remove(bot));
             break;
         case "objects" when parts.Length >= 2:
-            ForTargets(parts[1], (_, bot) =>
-            {
-                if (bot.KnownObjects.Count == 0)
-                    bot.Log(LogLevel.Info, "Bot.NoKnownObjects");
-                foreach (var (obj, pos) in bot.KnownObjects.OrderBy(entry => Vector3.Distance(entry.Value, bot.Position)))
-                    bot.Log(LogLevel.Info, "Bot.KnownObject", obj, pos.X, pos.Y, pos.Z, Vector3.Distance(pos, bot.Position));
-            });
+            ForTargets(parts[1], (_, bot) => BotManager.LogKnownObjects(bot));
             break;
         case "hit":
         {
@@ -242,25 +235,8 @@ bool RunCommand(string cmd)
             var words = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (words.Length < 4)
                 goto default;
-            string victim = words[2], munition = words[3];
-            int shots = words.Length > 4 ? int.Parse(words[4], CultureInfo.InvariantCulture) : 1;
-            uint munitionId = munition.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-                ? uint.Parse(munition[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture)
-                : FLHash.CreateID(munition);
-            ForTargets(words[1], (m, bot) =>
-            {
-                uint targetId = ResolveVictim(m, bot, victim);
-                if (targetId == 0)
-                {
-                    bot.Log(LogLevel.Error, "Bot.NoTarget", victim);
-                    return;
-                }
-                for (int shot = 0; shot < shots; shot++)
-                {
-                    if (!bot.ReportHit(targetId, munitionId))
-                        break;
-                }
-            });
+            int shots = words.Length > 4 && int.TryParse(words[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out int n) ? n : 1;
+            ForTargets(words[1], (m, bot) => m.ReportHits(bot, words[2], words[3], shots));
             break;
         }
         default:
@@ -268,16 +244,4 @@ bool RunCommand(string cmd)
             break;
     }
     return false;
-}
-
-// Object ID of a hit target: a number, "bot:N" (ship of bot N) or "nearest" (closest known player ship).
-static uint ResolveVictim(BotManager manager, Bot shooter, string victim)
-{
-    if (victim.Equals("nearest", StringComparison.OrdinalIgnoreCase))
-        return shooter.NearestKnownObject();
-    if (victim.StartsWith("bot:", StringComparison.OrdinalIgnoreCase))
-        return int.TryParse(victim[4..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int index)
-            ? manager.Find(index)?.ShipId ?? 0
-            : 0;
-    return uint.TryParse(victim, NumberStyles.Integer, CultureInfo.InvariantCulture, out uint objectId) ? objectId : 0;
 }
