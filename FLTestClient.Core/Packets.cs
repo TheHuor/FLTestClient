@@ -87,6 +87,8 @@ internal static class CommonOp
 {
     /// <summary>UPDATEOBJECT: position and orientation of a ship.</summary>
     public const int UpdateObject = 0x01;
+    /// <summary>FIREWEAPON: ship, flags, target position, gun count, gun sub-object IDs (FRpcFireWeaponPacket).</summary>
+    public const int FireWeapon = 0x02;
     /// <summary>CHATMSG: RDL text, target, sender.</summary>
     public const int ChatMsg = 0x05;
 }

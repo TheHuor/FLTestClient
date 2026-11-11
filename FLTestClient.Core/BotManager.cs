@@ -129,6 +129,22 @@ public sealed class BotManager : IDisposable
         }
     }
 
+    /// <summary>Lets a bot fire its guns at a target (see <see cref="Bot.Fire"/>). Only call on the network thread.</summary>
+    /// <param name="shooter">Bot that fires.</param>
+    /// <param name="victim">Target as accepted by <see cref="ResolveHitTarget"/>.</param>
+    /// <param name="volleys">Number of volleys.</param>
+    /// <param name="hitShield">Report hits on the shield instead of the hull.</param>
+    public void Fire(Bot shooter, string victim, int volleys, bool hitShield)
+    {
+        uint targetId = ResolveHitTarget(shooter, victim);
+        if (targetId == 0)
+        {
+            shooter.Log(LogLevel.Error, "Bot.NoTarget", victim);
+            return;
+        }
+        shooter.Fire(targetId, volleys, hitShield);
+    }
+
     /// <summary>Logs the player ships a bot knows, nearest first. Only call on the network thread.</summary>
     /// <param name="bot">Bot.</param>
     public static void LogKnownObjects(Bot bot)

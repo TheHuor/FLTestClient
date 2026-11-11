@@ -157,7 +157,7 @@
     <sys:String x:Key="Act.Launch">launch</sys:String>
     <sys:String x:Key="Act.Reconnect">reconnect</sys:String>
     <sys:String x:Key="Act.Disconnect">disconnect</sys:String>
-    <sys:String x:Key="Act.ReportHits">hit report</sys:String>
+    <sys:String x:Key="Act.Fire">fire order</sys:String>
     <sys:String x:Key="Act.ListShips">ship list</sys:String>
     <sys:String x:Key="Msg.NoSelection">No bots selected – choose “All bots” or select bots in the fleet.</sys:String>
     <sys:String x:Key="Msg.ChatToAll">→ all</sys:String>
@@ -239,13 +239,13 @@
     <sys:String x:Key="Inspector.ChatScope">Send through the bot named above.</sys:String>
     <sys:String x:Key="Inspector.ActionRequested">{0} requested for {1}</sys:String>
     <sys:String x:Key="Inspector.Pvp">PvP test</sys:String>
-    <sys:String x:Key="Inspector.PvpHint">The bot reports gun hits on the target the way a shooter's client does; the server applies the damage. Hits on this bot and incoming missiles appear in the log.</sys:String>
+    <sys:String x:Key="Inspector.PvpHint">The bot fires its mounted guns at the target like a player (needs the DATA folder in the settings). Hits on this bot and incoming missiles appear in the log.</sys:String>
     <sys:String x:Key="Inspector.HitVictim">Target</sys:String>
     <sys:String x:Key="Inspector.HitVictimTip">nearest = closest player ship, bot:N = ship of bot N, or an object ID from "Known ships"</sys:String>
-    <sys:String x:Key="Inspector.HitMunition">Munition</sys:String>
-    <sys:String x:Key="Inspector.HitMunitionTip">Nickname of a [Munition] from the server data (or 0x hash). An unknown munition crashes the server.</sys:String>
-    <sys:String x:Key="Inspector.HitCount">Hits</sys:String>
-    <sys:String x:Key="Inspector.ReportHits">Report hits</sys:String>
+    <sys:String x:Key="Inspector.FireVolleys">Volleys</sys:String>
+    <sys:String x:Key="Inspector.FireAtShield">Hit the shield (otherwise the hull)</sys:String>
+    <sys:String x:Key="Inspector.FireAtShieldTip">A real shooter hits the shield while it is up. Hull hits test the hull floor directly.</sys:String>
+    <sys:String x:Key="Inspector.Fire">Fire</sys:String>
     <sys:String x:Key="Inspector.ListShips">Known ships</sys:String>
     <sys:String x:Key="Common.Close">Close</sys:String>
     <sys:String x:Key="Cards.Search">Search bots…</sys:String>

@@ -97,6 +97,13 @@ public static class Texts
         ["Bot.NoKnownObjects"] = ("no other player ship known yet (the server only forwards position updates of players)",
                                   "noch kein anderes Spielerschiff bekannt (der Server leitet nur Positionen von Spielern weiter)"),
         ["Bot.NoTarget"] = ("no target: {0}", "kein Ziel: {0}"),
+        ["Bot.Guns"] = ("{0} gun(s): {1}; power plant {2:F0} capacity, {3:F0}/s", "{0} Geschütz(e): {1}; Reaktor {2:F0} Kapazität, {3:F0}/s"),
+        ["Bot.NoGuns"] = ("no usable guns mounted (or gun data missing)", "keine nutzbaren Geschütze montiert (oder Waffendaten fehlen)"),
+        ["Bot.NoWeaponData"] = ("cannot fire: no DATA folder set, gun data unknown", "kann nicht feuern: kein DATA-Ordner gesetzt, Waffendaten unbekannt"),
+        ["Bot.FireStarted"] = ("firing at object {0}: {1} volley(s) from {2} gun(s)", "feuere auf Objekt {0}: {1} Salve(n) aus {2} Geschütz(en)"),
+        ["Bot.FireDone"] = ("last volley at object {0} fired", "letzte Salve auf Objekt {0} abgefeuert"),
+        ["Bot.OutOfRange"] = ("target out of range for {0}: {1:F0} m, reach {2:F0} m; no hit reported",
+                              "Ziel außer Reichweite für {0}: {1:F0} m, Reichweite {2:F0} m; kein Treffer gemeldet"),
         ["Bot.StartFailed"] =("start failed: {0}", "Start fehlgeschlagen: {0}"),
         ["Bot.TickError"] = ("error in tick: {0}", "Fehler im Takt: {0}"),
         ["Manager.Error"] = ("error: {0}", "Fehler: {0}"),
@@ -153,6 +160,8 @@ public static class Texts
             Commands (TARGET = bot number or "all"):
               list | say TARGET TEXT | launch TARGET | reconnect TARGET | stop TARGET | quit
               objects TARGET                     list the other player ships the bot knows (ID, distance)
+              fire TARGET VICTIM [VOLLEYS] [shield]  fire the mounted guns at VICTIM (needs --data);
+                                                 shield = report hits on the shield instead of the hull
               hit TARGET VICTIM MUNITION [COUNT] report COUNT hits of MUNITION (nickname of a [Munition]
                                                  or 0x hash) on VICTIM = object ID, "bot:N" or "nearest",
                                                  as the client of a shooter does for gun hits (PvP tests)
@@ -187,12 +196,14 @@ public static class Texts
             Befehle (ZIEL = Bot-Nummer oder "all"):
               list | say ZIEL TEXT | launch ZIEL | reconnect ZIEL | stop ZIEL | quit
               objects ZIEL                       die anderen Spielerschiffe auflisten, die der Bot kennt (ID, Abstand)
+              fire ZIEL OPFER [SALVEN] [shield]  mit den montierten Geschützen auf OPFER feuern (braucht --data);
+                                                 shield = Treffer auf den Schild statt die Hülle melden
               hit ZIEL OPFER MUNITION [ANZAHL]   ANZAHL Treffer von MUNITION (Nickname einer [Munition]
                                                  oder 0x-Hash) auf OPFER = Objekt-ID, "bot:N" oder "nearest"
                                                  melden, wie es der Client eines Schützen bei Geschütztreffern tut (PvP-Tests)
             """),
-        ["Cli.Commands"] = ("Commands: list | say TARGET TEXT | launch TARGET | reconnect TARGET | stop TARGET | objects TARGET | hit TARGET VICTIM MUNITION [COUNT] | quit",
-                            "Befehle: list | say ZIEL TEXT | launch ZIEL | reconnect ZIEL | stop ZIEL | objects ZIEL | hit ZIEL OPFER MUNITION [ANZAHL] | quit"),
+        ["Cli.Commands"] = ("Commands: list | say TARGET TEXT | launch TARGET | reconnect TARGET | stop TARGET | objects TARGET | fire TARGET VICTIM [VOLLEYS] [shield] | hit TARGET VICTIM MUNITION [COUNT] | quit",
+                            "Befehle: list | say ZIEL TEXT | launch ZIEL | reconnect ZIEL | stop ZIEL | objects ZIEL | fire ZIEL OPFER [SALVEN] [shield] | hit ZIEL OPFER MUNITION [ANZAHL] | quit"),
         ["Cli.NeedsValue"] = ("{0} needs a value", "{0} braucht einen Wert"),
         ["Cli.UnknownOption"] = ("Unknown option {0}", "Unbekannte Option {0}"),
         ["Cli.NotFlserverCfg"] = ("{0} is not an FLServer.cfg", "{0} ist keine FLServer.cfg"),

@@ -49,7 +49,13 @@ for (int i = 0; i < args.Length; i++)
         case "--say": sayOnLogin.Add(Next()); break;
         case "--duration": duration = double.Parse(Next(), CultureInfo.InvariantCulture); break;
         case "--stagger": stagger = double.Parse(Next(), CultureInfo.InvariantCulture); break;
-        case "--data": options.Universe = UniverseNames.Load(Next()); break;
+        case "--data":
+        {
+            string data = Next();
+            options.Universe = UniverseNames.Load(data);
+            options.Weapons = WeaponData.Load(data);
+            break;
+        }
         case "--faction": options.Faction = Next(); break;
         case "--base": options.Base = Next(); break;
         case "--package": options.Package = Next(); break;
@@ -229,6 +235,17 @@ bool RunCommand(string cmd)
         case "objects" when parts.Length >= 2:
             ForTargets(parts[1], (_, bot) => BotManager.LogKnownObjects(bot));
             break;
+        case "fire":
+        {
+            // fire SHOOTERS VICTIM [VOLLEYS] [shield]
+            var words = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length < 3)
+                goto default;
+            int volleys = words.Length > 3 && int.TryParse(words[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : 5;
+            bool shield = words.Any(word => word.Equals("shield", StringComparison.OrdinalIgnoreCase));
+            ForTargets(words[1], (m, bot) => m.Fire(bot, words[2], volleys, shield));
+            break;
+        }
         case "hit":
         {
             // hit SHOOTERS VICTIM MUNITION [COUNT]

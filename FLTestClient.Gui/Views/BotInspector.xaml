@@ -40,12 +40,11 @@
      <TextBlock Text="{DynamicResource Inspector.PvpHint}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,12"/>
      <TextBlock Text="{DynamicResource Inspector.HitVictim}" Style="{StaticResource FieldLabel}"/>
      <TextBox Text="{Binding HitVictim, UpdateSourceTrigger=PropertyChanged}" ToolTip="{DynamicResource Inspector.HitVictimTip}" AutomationProperties.Name="{DynamicResource Inspector.HitVictim}" Margin="0,0,0,10"/>
-     <TextBlock Text="{DynamicResource Inspector.HitMunition}" Style="{StaticResource FieldLabel}"/>
-     <TextBox Text="{Binding HitMunition, UpdateSourceTrigger=PropertyChanged}" ToolTip="{DynamicResource Inspector.HitMunitionTip}" AutomationProperties.Name="{DynamicResource Inspector.HitMunition}" Margin="0,0,0,10"/>
-     <TextBlock Text="{DynamicResource Inspector.HitCount}" Style="{StaticResource FieldLabel}"/>
-     <TextBox Text="{Binding HitCount, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{DynamicResource Inspector.HitCount}" Width="80" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+     <TextBlock Text="{DynamicResource Inspector.FireVolleys}" Style="{StaticResource FieldLabel}"/>
+     <TextBox Text="{Binding FireVolleys, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{DynamicResource Inspector.FireVolleys}" Width="80" HorizontalAlignment="Left" Margin="0,0,0,10"/>
+     <CheckBox Content="{DynamicResource Inspector.FireAtShield}" IsChecked="{Binding FireAtShield}" ToolTip="{DynamicResource Inspector.FireAtShieldTip}" Margin="0,0,0,12"/>
      <WrapPanel Margin="0,0,0,20">
-      <Button Content="{DynamicResource Inspector.ReportHits}" Command="{Binding ReportHitsFocusedCommand}" Style="{StaticResource AccentButton}" Margin="0,0,8,6"/>
+      <Button Content="{DynamicResource Inspector.Fire}" Command="{Binding FireFocusedCommand}" Style="{StaticResource AccentButton}" Margin="0,0,8,6"/>
       <Button Content="{DynamicResource Inspector.ListShips}" Command="{Binding ListKnownShipsFocusedCommand}" Margin="0,0,8,6"/>
      </WrapPanel>
      <Border Height="1" Background="{DynamicResource PanelBorder}" Margin="0,0,0,16"/>
