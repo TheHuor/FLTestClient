@@ -443,6 +443,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 NamePrefix = NamePrefix.Trim(),
                 AutoLaunch = AutoLaunch,
                 Universe = universe,
+                Weapons = LoadWeapons(),
                 Faction = Faction.Trim(),
                 Base = NewCharBase.Trim(),
                 Package = Package.Trim(),
@@ -511,6 +512,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (!quiet)
                 AddActivity(null, Entry(Loc.T("Msg.System"), Loc.T("Msg.UniverseFailed", e.Message), Tone.Warning));
+        }
+    }
+
+    // Guns and power plants for firing; null without a DATA folder (bots then cannot fire).
+    private WeaponData? LoadWeapons()
+    {
+        if (DataDirectory.Trim().Length == 0)
+            return null;
+        try
+        {
+            return WeaponData.Load(DataDirectory.Trim());
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            AddActivity(null, Entry(Loc.T("Msg.System"), Loc.T("Msg.UniverseFailed", e.Message), Tone.Warning));
+            return null;
         }
     }
 

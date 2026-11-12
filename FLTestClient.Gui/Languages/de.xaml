@@ -153,6 +153,8 @@
     <sys:String x:Key="Act.Launch">Start ins All</sys:String>
     <sys:String x:Key="Act.Reconnect">neu verbinden</sys:String>
     <sys:String x:Key="Act.Disconnect">trennen</sys:String>
+    <sys:String x:Key="Act.Fire">Feuerbefehl</sys:String>
+    <sys:String x:Key="Act.ListShips">Schiffsliste</sys:String>
     <sys:String x:Key="Msg.NoSelection">Keine Bots ausgewählt – „Alle Bots“ wählen oder in der Flotte markieren.</sys:String>
     <sys:String x:Key="Msg.ChatToAll">→ alle</sys:String>
     <sys:String x:Key="Msg.ChatToSome">→ {0} Bot(s)</sys:String>
@@ -232,6 +234,15 @@
     <sys:String x:Key="Inspector.Relocate">Diesen Bot versetzen</sys:String>
     <sys:String x:Key="Inspector.ChatScope">Senden durch den oben genannten Bot.</sys:String>
     <sys:String x:Key="Inspector.ActionRequested">{0} für {1} angefordert</sys:String>
+    <sys:String x:Key="Inspector.Pvp">PvP-Test</sys:String>
+    <sys:String x:Key="Inspector.PvpHint">Der Bot feuert mit seinen montierten Geschützen auf das Ziel wie ein Spieler (braucht den DATA-Ordner in den Einstellungen). Treffer auf diesen Bot und anfliegende Raketen stehen im Protokoll.</sys:String>
+    <sys:String x:Key="Inspector.HitVictim">Ziel</sys:String>
+    <sys:String x:Key="Inspector.HitVictimTip">nearest = nächstes Spielerschiff, bot:N = Schiff von Bot N, oder eine Objekt-ID aus „Bekannte Schiffe“</sys:String>
+    <sys:String x:Key="Inspector.FireVolleys">Salven</sys:String>
+    <sys:String x:Key="Inspector.FireAtShield">Schild treffen (sonst die Hülle)</sys:String>
+    <sys:String x:Key="Inspector.FireAtShieldTip">Ein echter Schütze trifft den Schild, solange er steht. Hüllentreffer prüfen die Untergrenze der Hülle direkt.</sys:String>
+    <sys:String x:Key="Inspector.Fire">Feuern</sys:String>
+    <sys:String x:Key="Inspector.ListShips">Bekannte Schiffe</sys:String>
     <sys:String x:Key="Common.Close">Schließen</sys:String>
     <sys:String x:Key="Cards.Search">Bots suchen …</sys:String>
     <sys:String x:Key="Settings.GameServer">SPIELSERVER</sys:String>
