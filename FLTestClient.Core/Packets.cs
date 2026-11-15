@@ -29,6 +29,11 @@ internal static class ClientOp
     public const int SelectCharacter = 0x06;
     /// <summary>ENTERBASE: base ID.</summary>
     public const int EnterBase = 0x07;
+    /// <summary>
+    /// SYSTEM_SWITCH_OUT_COMPLETE: ship ID (FRpcSystemSwitchOutCompletePacket). The client sends it once the jump
+    /// tunnel is done; the server then moves the ship into the destination system (IServerImpl::SystemSwitchOutComplete).
+    /// </summary>
+    public const int SystemSwitchOutComplete = 0x0b;
     /// <summary>EXITBASE: base ID.</summary>
     public const int ExitBase = 0x0d;
     /// <summary>ENTERLOCATION: room ID.</summary>
@@ -41,6 +46,11 @@ internal static class ClientOp
     public const int CreateNewChar = 0x39;
     /// <summary>LAUNCHCOMPLETE: base, ship.</summary>
     public const int LaunchComplete = 0x3e;
+    /// <summary>
+    /// JUMPINCOMPLETE: system ID, ship ID (FRpcJumpInCompletePacket). Sent when the jump-in at the arrival gate
+    /// is over; the server lifts the jump invulnerability and raises the JumpInComplete event (Ship::slot_74).
+    /// </summary>
+    public const int JumpInComplete = 0x43;
 }
 
 /// <summary>Opcodes of the SERVER channel (FLPACKET_SERVER_*) that the bot handles.</summary>
@@ -69,6 +79,16 @@ internal static class ServerOp
     public const int Land = 0x0b;
     /// <summary>SETSTARTROOM: base, room (single player only).</summary>
     public const int SetStartRoom = 0x0d;
+    /// <summary>
+    /// SYSTEM_SWITCH_OUT: ship, jump object, and with RandomJumps on the server optionally the destination system
+    /// as a third dword (FRpcServerSystemSwitchOutPacket; the RandomJumps client hook reads it when 12 bytes remain).
+    /// </summary>
+    public const int SystemSwitchOut = 0x21;
+    /// <summary>
+    /// SYSTEM_SWITCH_IN: object, type bits of the arrival object (0x40 jump gate, 0x800 jump hole), position,
+    /// orientation as four floats w, x, y, z (FRpcServerSystemSwitchInPacket).
+    /// </summary>
+    public const int SystemSwitchIn = 0x22;
     /// <summary>GFDESTROYNEWSBROADCAST: base, key.</summary>
     public const int GfDestroyNewsBroadcast = 0x14;
     /// <summary>REQUESTCREATESHIPRESP: success, ship ID.</summary>
