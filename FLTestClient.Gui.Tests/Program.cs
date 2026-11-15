@@ -20,6 +20,85 @@ internal static class Program
         // The test host owns its windows; suppress the production StartupUri before draining layout work.
         typeof(Application).GetField("_startupUri", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(app, null);
         int failed = 0, passed = 0;
+        Run("Chat target survives list updates and falls back when the player leaves", () =>
+        {
+            var vm = Context();
+            Check(vm.ChatTargets.Count == 4 && vm.SelectedChatTarget?.Channel == ChatId.Universe, "Default chat target wrong");
+            vm.UpdateChatTargets(new[] { "Trent" });
+            vm.SelectedChatTarget = vm.ChatTargets[4];
+            vm.UpdateChatTargets(new[] { "Juni", "Trent" });
+            Check(vm.ChatTargets.Count == 6 && vm.SelectedChatTarget?.PlayerName == "Trent", "Selected player lost on update");
+            vm.SelectedChatTarget = null;
+            Check(vm.SelectedChatTarget?.PlayerName == "Trent", "Null from the list control cleared the target");
+            vm.UpdateChatTargets(new[] { "Juni" });
+            Check(vm.SelectedChatTarget?.Channel == ChatId.Universe && vm.SelectedChatTarget?.PlayerName == null, "No fallback after the player left");
+        });
+        Run("Port search finds a server on another port and ignores foreign answers", () =>
+        {
+            // Stand-ins on loopback: one answers like a Freelancer server, one with a foreign datagram.
+            using var server = new System.Net.Sockets.UdpClient(new System.Net.IPEndPoint(System.Net.IPAddress.Loopback, 0));
+            using var stranger = new System.Net.Sockets.UdpClient(new System.Net.IPEndPoint(System.Net.IPAddress.Loopback, 0));
+            int serverPort = ((System.Net.IPEndPoint)server.Client.LocalEndPoint!).Port;
+            int strangerPort = ((System.Net.IPEndPoint)stranger.Client.LocalEndPoint!).Port;
+            async Task Answer(System.Net.Sockets.UdpClient socket, Func<byte[], byte[]> reply)
+            {
+                var query = await socket.ReceiveAsync();
+                byte[] answer = reply(query.Buffer);
+                await socket.SendAsync(answer, answer.Length, query.RemoteEndPoint);
+            }
+            var serverTask = Answer(server, query => new byte[] { 0x00, 0x03, query[2], query[3], 0xAA });
+            var strangerTask = Answer(stranger, _ => new byte[] { 0x00, 0x03, 0x00, 0x00 });
+            Check(ServerPortFinder.Find("127.0.0.1", serverPort, serverPort, 2000).SequenceEqual(new[] { serverPort }), "Server not found");
+            Check(ServerPortFinder.Find("127.0.0.1", strangerPort, strangerPort, 300).Count == 0, "Foreign answer accepted");
+            Check(serverTask.IsCompletedSuccessfully && strangerTask.IsCompletedSuccessfully, "Query did not arrive");
+        });
+        Run("First contact greets arrivals once and leaves known players alone", () =>
+        {
+            var planner = new PlayerContactPlanner(new Random(1));
+            var start = new DateTime(2026, 1, 1);
+            IReadOnlyList<string> Greet(double seconds, params string[] online) => planner.Due(start.AddSeconds(seconds), online, true, true, 0);
+            Check(Greet(0, "Early").Count == 0 && Greet(11, "Early").Count == 0, "Player online before the bots greeted");
+            Check(Greet(12, "Early", "Trent").Count == 0, "Arrival greeted without delay");
+            Check(Greet(30, "Early", "Trent").SequenceEqual(new[] { "Trent" }), "Arrival not greeted");
+            Check(Greet(60, "Early", "Trent").Count == 0, "Arrival greeted twice");
+            Greet(61, "Early");
+            Greet(62, "Early", "Trent");
+            Check(Greet(90, "Early", "Trent").Count == 0, "Player greeted again within the pause");
+            Greet(400, "Early");
+            Greet(401, "Early", "Trent");
+            Check(Greet(420, "Early", "Trent").SequenceEqual(new[] { "Trent" }), "Player not greeted after the pause");
+        });
+        Run("First contact approaches random players within the pause", () =>
+        {
+            var planner = new PlayerContactPlanner(new Random(1));
+            var start = new DateTime(2026, 1, 1);
+            var contacted = new List<string>();
+            for (int second = 0; second < 200; second++)
+                contacted.AddRange(planner.Due(start.AddSeconds(second), new[] { "Trent", "Juni" }, true, false, 20));
+            Check(contacted.Count == 2 && contacted.Distinct().Count() == 2, "Player pause not respected");
+            Check(planner.Due(start.AddSeconds(900), new[] { "Trent" }, false, true, 20).Count == 0, "Contact without a bot in the game");
+        });
+        Run("Chat replies go to the right place and never to bots", () =>
+        {
+            uint? FindPlayer(string name) => name == "Trent" ? 7 : null;
+            ChatReplyPlan? Plan(uint from, string text, uint? color = null) =>
+                ChatReply.Plan(new ChatMessage(from, 5, text, color), "TestBot01", "TestBot", FindPlayer);
+            Check(Plan(ChatId.Universe, "Trent: hi", 0x19BD3A) is { Target: 7, AlwaysAnswer: true }, "FLHook private message not answered");
+            Check(Plan(ChatId.Universe, "Trent: hi", 0xFF7BFF) is { Target: ChatId.Group, AlwaysAnswer: true }, "FLHook group message not answered");
+            Check(Plan(ChatId.Universe, "Trent: hi", 0xFF8F40) is { Target: ChatId.Local, AlwaysAnswer: false }, "FLHook local message not left to chance");
+            Check(Plan(ChatId.Universe, "Trent: hi", 0xFFFFFF) == null, "FLHook universe message answered");
+            Check(Plan(ChatId.Universe, "Your client-id: 3", 0x19BD3A) == null, "FLHook notice answered");
+            Check(Rdl.LastColor(Convert.FromHexString("0100000008000000003ABD19FFFFFFFF")) == 0x19BD3A, "TRA colour not read");
+            Check(Plan(7, "Trent: hi") is { Target: 7, SenderName: "Trent", AlwaysAnswer: true }, "Private message not answered");
+            Check(Plan(ChatId.Group, "Trent: hi") is { Target: ChatId.Group, AlwaysAnswer: true }, "Group message not answered");
+            Check(Plan(ChatId.Local, "Trent: hey testbot01") is { Target: ChatId.Local, AlwaysAnswer: true }, "Mention not answered");
+            Check(Plan(7, "TestBot01: hi") == null, "Copy of the own message answered");
+            Check(Plan(ChatId.Group, "TestBot02: hi") == null, "Other bot answered");
+            Check(Plan(ChatId.Universe, "Trent: hi") == null, "Universe message answered");
+            Check(Plan(0, "CONSOLE: hi") == null && Plan(7, "no header") == null, "Server message answered");
+            Check(Plan(7, "TestBotter: hi") != null, "Player with a similar name ignored");
+            Check(Plan(ChatId.Universe, "Trent: /i", 0xE6C684) == null, "Mistyped command answered");
+        });
         Run("Quick chat prepares input without sending", () =>
         {
             var vm = Context();

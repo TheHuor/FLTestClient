@@ -37,8 +37,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private int port, startIndex, count, adminPort;
     private bool autoLaunch, isDarkTheme, chatToAll, activitySelectedOnly, followServerLog, importantOnly = true;
     private int onlineCount, inSpaceCount, dockedCount, failedCount, timeLagCount, kickCount, cheatCount, errorCount;
-    private string faction, newCharBase, package, pilot, chatScript, dockTarget;
-    private bool circleFlight, sessionCycle;
+    private string faction, newCharBase, package, pilot, chatScript, chatReplyLines, contactLines, dockTarget;
+    private bool circleFlight, sessionCycle, autoJoinGroups, chatReplies, greetPlayers, invitePlayers;
+    private int channelReplyPercent;
+    private double approachIntervalSeconds;
+    private ChatTarget? selectedChatTarget;
     private double circleRadius, circleSpeed, onlineMinSeconds, onlineMaxSeconds, offlineSeconds, chatIntervalSeconds;
 
     /// <summary>Raised when the theme should change (true = dark).</summary>
@@ -82,6 +85,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         offlineSeconds = settings.OfflineSeconds;
         chatIntervalSeconds = settings.ChatIntervalSeconds;
         chatScript = settings.ChatScript;
+        autoJoinGroups = settings.AutoJoinGroups;
+        chatReplies = settings.ChatReplies;
+        channelReplyPercent = settings.ChannelReplyPercent;
+        chatReplyLines = settings.ChatReplyLines;
+        greetPlayers = settings.GreetPlayers;
+        approachIntervalSeconds = settings.ApproachIntervalSeconds;
+        invitePlayers = settings.InvitePlayers;
+        contactLines = settings.ContactLines;
         dockTarget = settings.DockTarget;
         LoadUniverse(quiet: true);
 
@@ -108,6 +119,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         InitializeInteraction();
         InitializeFleetPresentation();
 
+        UpdateChatTargets(Array.Empty<string>());
         timer.Tick += (_, _) => Refresh();
         timer.Start();
     }
@@ -237,8 +249,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>Chat script, one line per message (text or FLHook command).</summary>
     public string ChatScript { get => chatScript; set { if (Set(ref chatScript, value)) ApplyBehaviour(); } }
 
-    private string[] ChatLines() =>
-        ChatScript.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToArray();
+    /// <summary>Accept group invitations automatically.</summary>
+    public bool AutoJoinGroups { get => autoJoinGroups; set { if (Set(ref autoJoinGroups, value)) ApplyBehaviour(); } }
+
+    /// <summary>Answer players in chat.</summary>
+    public bool ChatReplies { get => chatReplies; set { if (Set(ref chatReplies, value)) ApplyBehaviour(); } }
+
+    /// <summary>Chance in percent to answer local or system chat without a mention.</summary>
+    public int ChannelReplyPercent { get => channelReplyPercent; set { if (Set(ref channelReplyPercent, Math.Clamp(value, 0, 100))) ApplyBehaviour(); } }
+
+    /// <summary>Answers, one per line; <c>{name}</c> stands for the sender.</summary>
+    public string ChatReplyLines { get => chatReplyLines; set { if (Set(ref chatReplyLines, value)) ApplyBehaviour(); } }
+
+    /// <summary>One bot greets real players when they log in.</summary>
+    public bool GreetPlayers { get => greetPlayers; set { if (Set(ref greetPlayers, value)) ApplyBehaviour(); } }
+
+    /// <summary>Average time between two random contacts in seconds; 0 = off.</summary>
+    public double ApproachIntervalSeconds { get => approachIntervalSeconds; set { if (Set(ref approachIntervalSeconds, Math.Max(0, value))) ApplyBehaviour(); } }
+
+    /// <summary>The bot that contacts a player also invites the player to its group.</summary>
+    public bool InvitePlayers { get => invitePlayers; set { if (Set(ref invitePlayers, value)) ApplyBehaviour(); } }
+
+    /// <summary>Lines for greetings and random contacts, one per line; <c>{name}</c> stands for the player.</summary>
+    public string ContactLines { get => contactLines; set { if (Set(ref contactLines, value)) ApplyBehaviour(); } }
+
+    private static string[] SplitLines(string text) =>
+        text.Split('\n').Select(line => line.Trim()).Where(line => line.Length > 0).ToArray();
 
     // Writes the behaviour settings into the options the running bots read on every tick.
     private void ApplyBehaviour(BotOptions? target = null)
@@ -254,7 +290,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         o.OnlineMaxSeconds = Math.Max(OnlineMinSeconds, OnlineMaxSeconds);
         o.OfflineSeconds = OfflineSeconds;
         o.ChatIntervalSeconds = ChatIntervalSeconds;
-        o.ChatLines = ChatLines();
+        o.ChatLines = SplitLines(ChatScript);
+        o.AutoJoinGroups = AutoJoinGroups;
+        o.ChatReplies = ChatReplies;
+        o.ChannelReplyPercent = ChannelReplyPercent;
+        o.ChatReplyLines = SplitLines(ChatReplyLines);
+        o.GreetPlayers = GreetPlayers;
+        o.ApproachIntervalSeconds = ApproachIntervalSeconds;
+        o.InvitePlayers = InvitePlayers;
+        o.ContactLines = SplitLines(ContactLines);
     }
 
     // ------------------------------------------------------------------------------------------ settings
@@ -377,6 +421,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>Chat to all bots instead of only the selected ones.</summary>
     public bool ChatToAll { get => chatToAll; set => Set(ref chatToAll, value); }
+
+    /// <summary>Possible destinations of a chat message: channels and real players.</summary>
+    public ObservableCollection<ChatTarget> ChatTargets { get; } = new();
+
+    /// <summary>Destination of the next chat message.</summary>
+    public ChatTarget? SelectedChatTarget
+    {
+        get => selectedChatTarget;
+        // The list control reports null while the list is rebuilt; that is not a choice.
+        set { if (value != null) Set(ref selectedChatTarget, value); }
+    }
+
+    /// <summary>Rebuilds the destinations and keeps the current one if it still exists.</summary>
+    /// <param name="players">Real players online.</param>
+    public void UpdateChatTargets(IReadOnlyList<string> players)
+    {
+        var targets = ChatTarget.Build(players);
+        if (targets.SequenceEqual(ChatTargets))
+            return;
+        var previous = selectedChatTarget;
+        ChatTargets.Clear();
+        foreach (var target in targets)
+            ChatTargets.Add(target);
+        selectedChatTarget = targets.FirstOrDefault(target => previous != null && target.SameDestination(previous)) ?? targets[0];
+        OnPropertyChanged(nameof(SelectedChatTarget));
+    }
 
     /// <summary>Only fill the activity log for selected bots.</summary>
     public bool ActivitySelectedOnly { get => activitySelectedOnly; set => Set(ref activitySelectedOnly, value); }
@@ -552,12 +622,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             AddFeed(Chat, Entry(Loc.T("Msg.Hint"), Loc.T("Msg.NoSelection"), Tone.Warning));
             return;
         }
+        var target = SelectedChatTarget ?? ChatTargets[0];
         manager.Post(m =>
         {
             foreach (var bot in m.Bots.Where(b => all || selected.Contains(b.Index)))
-                bot.Say(text);
+            {
+                if (target.PlayerName != null)
+                    bot.ContactPlayer(target.PlayerName, text, invite: false);
+                else
+                    bot.Say(text, target.Channel);
+            }
         });
-        AddFeed(Chat, Entry(all ? Loc.T("Msg.ChatToAll") : Loc.T("Msg.ChatToSome", selected.Count), text, Tone.Accent));
+        string senders = all ? Loc.T("Msg.ChatToAll") : Loc.T("Msg.ChatToSome", selected.Count);
+        AddFeed(Chat, Entry($"{senders} → {target.Label}", text, Tone.Accent));
         ChatInput = "";
     }
 
@@ -645,6 +722,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void Refresh()
     {
+        UpdateChatTargets(manager?.OnlinePlayers ?? Array.Empty<string>());
         var snaps = manager?.Snapshots ?? Array.Empty<BotSnapshot>();
         foreach (var s in snaps)
         {
@@ -760,6 +838,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         settings.OfflineSeconds = OfflineSeconds;
         settings.ChatIntervalSeconds = ChatIntervalSeconds;
         settings.ChatScript = ChatScript;
+        settings.AutoJoinGroups = AutoJoinGroups;
+        settings.ChatReplies = ChatReplies;
+        settings.ChannelReplyPercent = ChannelReplyPercent;
+        settings.ChatReplyLines = ChatReplyLines;
+        settings.GreetPlayers = GreetPlayers;
+        settings.ApproachIntervalSeconds = ApproachIntervalSeconds;
+        settings.InvitePlayers = InvitePlayers;
+        settings.ContactLines = ContactLines;
         settings.DockTarget = DockTarget.Trim();
         settings.CardsView = UseCardView;
         persistSettings(settings);

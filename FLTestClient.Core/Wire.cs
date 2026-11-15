@@ -194,6 +194,28 @@ public static class Rdl
         return buf;
     }
 
+    /// <summary>Finds the text colour that applies at the end of a binary RDL.</summary>
+    /// <param name="rdl">Binary RDL.</param>
+    /// <returns>Colour as 0xRRGGBB from the last TRA record, or null if there is none.</returns>
+    public static uint? LastColor(byte[] rdl)
+    {
+        const uint traRecord = 1;
+        uint? color = null;
+        int position = 0;
+        while (position + 8 <= rdl.Length)
+        {
+            uint type = BinaryPrimitives.ReadUInt32LittleEndian(rdl.AsSpan(position));
+            int length = (int)BinaryPrimitives.ReadUInt32LittleEndian(rdl.AsSpan(position + 4));
+            if (length < 0 || position + 8 + length > rdl.Length)
+                break;
+            // TRA: attributes (flags in the low byte, colour above), mask.
+            if (type == traRecord && length >= 4)
+                color = BinaryPrimitives.ReadUInt32LittleEndian(rdl.AsSpan(position + 8)) >> 8;
+            position += 8 + length;
+        }
+        return color;
+    }
+
     /// <summary>Extracts the plain text from a binary RDL (like <c>BinaryRDLReader::extract_text_from_buffer</c>).</summary>
     /// <param name="rdl">Binary RDL.</param>
     /// <returns>All TEXT records concatenated.</returns>

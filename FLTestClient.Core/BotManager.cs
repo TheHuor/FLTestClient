@@ -20,7 +20,10 @@ public sealed class BotManager : IDisposable
     private readonly Thread thread;
     private volatile bool running = true;
     private volatile BotSnapshot[] snapshots = Array.Empty<BotSnapshot>();
+    private volatile string[] onlinePlayers = Array.Empty<string>();
     private DateTime nextStartAt = DateTime.MinValue;
+    private readonly Random contactRandom = new();
+    private readonly PlayerContactPlanner contactPlanner;
 
     /// <summary>Delay between two connection attempts in seconds.</summary>
     public double StaggerSeconds { get; set; } = 0.5;
@@ -30,6 +33,9 @@ public sealed class BotManager : IDisposable
 
     /// <summary>State of all bots, refreshed about four times per second. Thread-safe.</summary>
     public IReadOnlyList<BotSnapshot> Snapshots => snapshots;
+
+    /// <summary>Real players online, sorted, without bots; refreshed once per second. Thread-safe.</summary>
+    public IReadOnlyList<string> OnlinePlayers => onlinePlayers;
 
     /// <summary>Log line of a bot or of the manager (bot = null). Raised on the network thread.</summary>
     public event Action<Bot?, LogLevel, string>? Logged;
@@ -42,6 +48,7 @@ public sealed class BotManager : IDisposable
     public BotManager(BotOptions options)
     {
         this.options = options;
+        contactPlanner = new PlayerContactPlanner(contactRandom);
         thread = new Thread(Run) { IsBackground = true, Name = "FLTestClient-Net" };
         thread.SetApartmentState(ApartmentState.MTA);
         thread.Start();
@@ -189,10 +196,31 @@ public sealed class BotManager : IDisposable
         thread.Join(3000);
     }
 
+    // Greetings and random contacts: the planner picks the players, then one random bot that sees them writes.
+    private void ContactPlayers(DateTime now)
+    {
+        var botsInGame = bots.Where(bot => bot.IsInGame).ToArray();
+        var realPlayers = botsInGame.SelectMany(bot => bot.PlayerNames)
+            .Where(name => !ChatReply.IsBot(name, options.NamePrefix))
+            .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        onlinePlayers = realPlayers;
+        var lines = options.ContactLines;
+        bool enabled = lines.Count > 0;
+        var due = contactPlanner.Due(now, realPlayers, botsInGame.Length > 0, enabled && options.GreetPlayers,
+            enabled ? options.ApproachIntervalSeconds : 0);
+        foreach (var player in due)
+        {
+            var witnesses = botsInGame.Where(bot => bot.PlayerNames.Contains(player, StringComparer.OrdinalIgnoreCase)).ToArray();
+            var sender = witnesses[contactRandom.Next(witnesses.Length)];
+            sender.ContactPlayer(player, lines[contactRandom.Next(lines.Count)], options.InvitePlayers);
+        }
+    }
+
     private void Run()
     {
         DP8.CoInitializeEx(IntPtr.Zero, 0 /* COINIT_MULTITHREADED */);
         DateTime nextSnapshot = DateTime.MinValue;
+        DateTime nextContactCheck = DateTime.MinValue;
         while (running)
         {
             // Only the work queued so far; whatever it queues itself runs on the next tick.
@@ -233,6 +261,12 @@ public sealed class BotManager : IDisposable
                 {
                     bot.Log(LogLevel.Error, "Bot.TickError", e.Message);
                 }
+            }
+
+            if (now >= nextContactCheck)
+            {
+                nextContactCheck = now.AddSeconds(1);
+                ContactPlayers(now);
             }
 
             if (now >= nextSnapshot)
