@@ -18,6 +18,8 @@ double stagger = 0.5;
 var sayOnLogin = new List<string>();
 string? commandFile = null;
 long commandFileOffset = 0;
+var customReplyLines = new List<string>();
+var customContactLines = new List<string>();
 
 for (int i = 0; i < args.Length; i++)
 {
@@ -88,6 +90,14 @@ for (int i = 0; i < args.Length; i++)
         }
         case "--chat-interval": options.ChatIntervalSeconds = double.Parse(Next(), CultureInfo.InvariantCulture); break;
         case "--chat-line": options.ChatLines = options.ChatLines.Append(Next()).ToArray(); break;
+        case "--no-group-join": options.AutoJoinGroups = false; break;
+        case "--no-replies": options.ChatReplies = false; break;
+        case "--reply-chance": options.ChannelReplyPercent = int.Parse(Next(), CultureInfo.InvariantCulture); break;
+        case "--reply-line": customReplyLines.Add(Next()); options.ChatReplyLines = customReplyLines; break;
+        case "--greet": options.GreetPlayers = true; break;
+        case "--approach": options.ApproachIntervalSeconds = double.Parse(Next(), CultureInfo.InvariantCulture); break;
+        case "--invite": options.InvitePlayers = true; break;
+        case "--contact-line": customContactLines.Add(Next()); options.ContactLines = customContactLines; break;
         case "--verbose": options.Verbose = true; break;
         case "--commands": commandFile = Next(); break;
         case "--hash":
@@ -222,6 +232,10 @@ bool RunCommand(string cmd)
             break;
         case "say" when parts.Length == 3:
             ForTargets(parts[1], (_, bot) => bot.Say(parts[2]));
+            break;
+        case "tell" when parts.Length == 3 && parts[2].Split(' ', 2) is [var clientId, var privateText]
+                         && uint.TryParse(clientId, out uint receiver):
+            ForTargets(parts[1], (_, bot) => bot.Say(privateText, receiver));
             break;
         case "launch" when parts.Length >= 2:
             ForTargets(parts[1], (_, bot) => bot.Launch());

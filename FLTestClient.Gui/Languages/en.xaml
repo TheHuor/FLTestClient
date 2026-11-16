@@ -80,15 +80,29 @@
     <sys:String x:Key="Set.Offline">OFFLINE (S)</sys:String>
     <sys:String x:Key="Set.ChatInterval">CHAT SCRIPT EVERY (S, 0 = OFF)</sys:String>
     <sys:String x:Key="Set.ChatScript">CHAT SCRIPT (ONE LINE PER MESSAGE)</sys:String>
+    <sys:String x:Key="Set.AutoJoinGroups">Accept group invitations automatically</sys:String>
+    <sys:String x:Key="Set.ChatReplies">Answer players in chat</sys:String>
+    <sys:String x:Key="Set.ChannelReplyPercent">REPLY CHANCE LOCAL/SYSTEM (%)</sys:String>
+    <sys:String x:Key="Set.ChatReplyLines">ANSWERS (ONE PER LINE, {name} = SENDER)</sys:String>
+    <sys:String x:Key="Set.GreetPlayers">Greet real players when they log in</sys:String>
+    <sys:String x:Key="Set.ApproachInterval">WRITE TO A RANDOM PLAYER EVERY (S, 0 = OFF)</sys:String>
+    <sys:String x:Key="Set.InvitePlayers">Also invite the player to the group</sys:String>
+    <sys:String x:Key="Set.ContactLines">FIRST MESSAGES (ONE PER LINE, {name} = PLAYER)</sys:String>
     <sys:String x:Key="Set.BehaviourHint">Circle, cycles and chat script create realistic load: movement, logins/logouts with saving, and plugin commands.</sys:String>
 
     <!-- Comms -->
     <sys:String x:Key="Comms.Title">Chat &amp; bot commands</sys:String>
-    <sys:String x:Key="Comms.Subtitle">Choose which bots send the message. Quick commands fill the input; Send executes it.</sys:String>
+    <sys:String x:Key="Comms.Subtitle">Choose which bots send the message and where it goes. Quick commands fill the input; Send executes it.</sys:String>
     <sys:String x:Key="Comms.Quick">PREPARE</sys:String>
     <sys:String x:Key="Comms.Selected">Send through selection</sys:String>
     <sys:String x:Key="Comms.AllBots">Send through all bots</sys:String>
     <sys:String x:Key="Comms.Send">Send</sys:String>
+    <sys:String x:Key="Comms.Target">Message target</sys:String>
+    <sys:String x:Key="Comms.TargetCommands">FLHook commands</sys:String>
+    <sys:String x:Key="Comms.TargetGroup">Group chat</sys:String>
+    <sys:String x:Key="Comms.TargetLocal">Local chat</sys:String>
+    <sys:String x:Key="Comms.TargetSystem">System chat</sys:String>
+    <sys:String x:Key="Comms.TargetPlayer">Private: {0}</sys:String>
 
     <!-- Command -->
     <sys:String x:Key="Cmd.Title">Server administration</sys:String>

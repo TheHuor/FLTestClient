@@ -61,6 +61,30 @@
                             <TextBox Text="{Binding ChatScript}" AcceptsReturn="True" Height="90" VerticalScrollBarVisibility="Auto"
                                      FontFamily="{StaticResource MonoFont}" />
                         </StackPanel>
+                        <CheckBox Content="{DynamicResource Set.AutoJoinGroups}" IsChecked="{Binding AutoJoinGroups}" Margin="0,0,0,8" />
+                        <CheckBox Content="{DynamicResource Set.ChatReplies}" IsChecked="{Binding ChatReplies}" Margin="0,0,0,8" />
+                        <StackPanel IsEnabled="{Binding ChatReplies}">
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="{DynamicResource Set.ChannelReplyPercent}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding ChannelReplyPercent}" Width="120" HorizontalAlignment="Left" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="{DynamicResource Set.ChatReplyLines}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding ChatReplyLines}" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"
+                                         FontFamily="{StaticResource MonoFont}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <CheckBox Content="{DynamicResource Set.GreetPlayers}" IsChecked="{Binding GreetPlayers}" Margin="0,0,0,8" />
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.ApproachInterval}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ApproachIntervalSeconds}" Width="120" HorizontalAlignment="Left" />
+                        </StackPanel>
+                        <CheckBox Content="{DynamicResource Set.InvitePlayers}" IsChecked="{Binding InvitePlayers}" Margin="0,0,0,8" />
+                        <StackPanel Style="{StaticResource Field}">
+                            <TextBlock Text="{DynamicResource Set.ContactLines}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ContactLines}" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"
+                                     FontFamily="{StaticResource MonoFont}" />
+                        </StackPanel>
 </StackPanel></ScrollViewer></TabItem>
   </TabControl>
  </DockPanel>

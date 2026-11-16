@@ -61,6 +61,10 @@ public static class Texts
         ["Bot.Connected"] = ("DirectPlay connected, waiting for CONNECTRESPONSE", "DirectPlay verbunden, warte auf CONNECTRESPONSE"),
         ["Bot.WrongPassword"] = ("connection rejected: server password missing or wrong", "Verbindung abgelehnt: Server-Passwort fehlt oder ist falsch"),
         ["Bot.ConnectFailed"] = ("connection failed: HRESULT 0x{0:X8}", "Verbindung fehlgeschlagen: HRESULT 0x{0:X8}"),
+        ["Bot.ServerOnOtherPort"] = ("a Freelancer server answers on {0} port {1}, not on the configured port {2} - change the port",
+                                     "ein Freelancer-Server antwortet auf {0} Port {1}, nicht auf dem eingestellten Port {2} - Port ändern"),
+        ["Bot.NoServerFound"] = ("no Freelancer server answers on {0}, ports {1}-{2} (server running? address? firewall?)",
+                                 "kein Freelancer-Server antwortet auf {0}, Ports {1}-{2} (läuft der Server? Adresse? Firewall?)"),
         ["Bot.ServerDisconnected"] = ("disconnected by server (0x{0:X8})", "Verbindung vom Server getrennt (0x{0:X8})"),
         ["Bot.DecodeError"] = ("decode error {0}: {1}", "Dekodierfehler {0}: {1}"),
         ["Bot.ConnectResponse"] = ("CONNECTRESPONSE: client ID {0}", "CONNECTRESPONSE: Client-ID {0}"),
@@ -92,6 +96,11 @@ public static class Texts
         ["Bot.JumpArrived"] = ("system switch done, in space in {0}", "Systemwechsel fertig, im All in {0}"),
         ["Bot.JumpInMissing"] = ("no SYSTEM_SWITCH_IN {0:F0} s after SYSTEM_SWITCH_OUT_COMPLETE", "kein SYSTEM_SWITCH_IN {0:F0} s nach SYSTEM_SWITCH_OUT_COMPLETE"),
         ["Bot.Says"] = ("says: {0}", "sagt: {0}"),
+        ["Bot.GroupInvited"] = ("group invitation from {0}", "Gruppeneinladung von {0}"),
+        ["Bot.GroupJoined"] = ("joined the group of {0}", "Gruppe von {0} beigetreten"),
+        ["Bot.GroupLeft"] = ("left the group", "Gruppe verlassen"),
+        ["Bot.GroupInviting"] = ("inviting {0} to the group", "lade {0} in die Gruppe ein"),
+        ["Bot.GroupJoinFailed"] = ("could not join the group (type {0})", "Gruppenbeitritt fehlgeschlagen (Typ {0})"),
         ["Bot.SendFailed"] = ("send failed (not connected)", "Senden fehlgeschlagen (nicht verbunden)"),
         ["Bot.Respawn"] = ("respawning (character selection)", "Respawn (Charakterwahl)"),
         ["Bot.CycleLogout"] = ("session cycle: logging out, back in {0:F0} s", "Sitzungszyklus: melde mich ab, zurück in {0:F0} s"),
@@ -162,13 +171,21 @@ public static class Texts
               --cycle MIN-MAX:OFF    log out after MIN..MAX s online, back after OFF s (e.g. 120-300:30)
               --chat-interval SEC    send a random chat-script line every SEC seconds
               --chat-line TEXT       a line of the chat script (text or FLHook command), may be repeated
+              --no-group-join        do not accept group invitations
+              --no-replies           do not answer players in chat
+              --reply-chance PCT     chance to answer local/system chat without a mention (default 30)
+              --reply-line TEXT      an answer instead of the built-in ones ({name} = sender), may be repeated
+              --greet                one bot greets real players privately when they log in
+              --approach SEC         one bot writes to a random real player about every SEC seconds
+              --invite               the bot that writes also invites the player to its group
+              --contact-line TEXT    a line for --greet/--approach ({name} = player), may be repeated
               --lang en|de           language of the output (default en)
               --verbose              log every received packet
               --commands FILE        run new lines of this file as commands (for background use)
               --hash NICK            print the FL hash (CreateID) of a nickname
 
             Commands (TARGET = bot number or "all"):
-              list | say TARGET TEXT | launch TARGET | reconnect TARGET | stop TARGET | quit
+              list | say TARGET TEXT | tell TARGET CLIENT TEXT | launch TARGET | reconnect TARGET | stop TARGET | quit
               objects TARGET                     list the other player ships the bot knows (ID, distance)
               fire TARGET VICTIM [VOLLEYS] [shield]  fire the mounted guns at VICTIM (needs --data);
                                                  shield = report hits on the shield instead of the hull
@@ -198,13 +215,21 @@ public static class Texts
               --cycle MIN-MAX:OFF    nach MIN..MAX s online abmelden, nach OFF s zurück (z.B. 120-300:30)
               --chat-interval SEK    alle SEK Sekunden eine zufällige Chat-Skript-Zeile senden
               --chat-line TEXT       eine Zeile des Chat-Skripts (Text oder FLHook-Befehl), mehrfach erlaubt
+              --no-group-join        Gruppeneinladungen nicht annehmen
+              --no-replies           Spielern im Chat nicht antworten
+              --reply-chance PROZ    Chance, im Lokal-/Systemchat ohne Erwähnung zu antworten (Standard 30)
+              --reply-line TEXT      Antwort statt der eingebauten ({name} = Absender), mehrfach erlaubt
+              --greet                ein Bot begrüßt echte Spieler beim Einloggen privat
+              --approach SEK         ein Bot schreibt etwa alle SEK Sekunden einen zufälligen echten Spieler an
+              --invite               der schreibende Bot lädt den Spieler auch in seine Gruppe ein
+              --contact-line TEXT    eine Zeile für --greet/--approach ({name} = Spieler), mehrfach erlaubt
               --lang en|de           Sprache der Ausgabe (Standard en)
               --verbose              jedes empfangene Paket protokollieren
               --commands DATEI       neue Zeilen dieser Datei als Befehle ausführen (für Hintergrundbetrieb)
               --hash NICK            FL-Hash (CreateID) eines Nicknames ausgeben
 
             Befehle (ZIEL = Bot-Nummer oder "all"):
-              list | say ZIEL TEXT | launch ZIEL | reconnect ZIEL | stop ZIEL | quit
+              list | say ZIEL TEXT | tell ZIEL CLIENT TEXT | launch ZIEL | reconnect ZIEL | stop ZIEL | quit
               objects ZIEL                       die anderen Spielerschiffe auflisten, die der Bot kennt (ID, Abstand)
               fire ZIEL OPFER [SALVEN] [shield]  mit den montierten Geschützen auf OPFER feuern (braucht --data);
                                                  shield = Treffer auf den Schild statt die Hülle melden
@@ -212,8 +237,8 @@ public static class Texts
                                                  oder 0x-Hash) auf OPFER = Objekt-ID, "bot:N" oder "nearest"
                                                  melden, wie es der Client eines Schützen bei Geschütztreffern tut (PvP-Tests)
             """),
-        ["Cli.Commands"] = ("Commands: list | say TARGET TEXT | launch TARGET | reconnect TARGET | stop TARGET | objects TARGET | fire TARGET VICTIM [VOLLEYS] [shield] | hit TARGET VICTIM MUNITION [COUNT] | quit",
-                            "Befehle: list | say ZIEL TEXT | launch ZIEL | reconnect ZIEL | stop ZIEL | objects ZIEL | fire ZIEL OPFER [SALVEN] [shield] | hit ZIEL OPFER MUNITION [ANZAHL] | quit"),
+        ["Cli.Commands"] = ("Commands: list | say TARGET TEXT | tell TARGET CLIENT TEXT | launch TARGET | reconnect TARGET | stop TARGET | objects TARGET | fire TARGET VICTIM [VOLLEYS] [shield] | hit TARGET VICTIM MUNITION [COUNT] | quit",
+                            "Befehle: list | say ZIEL TEXT | tell ZIEL CLIENT TEXT | launch ZIEL | reconnect ZIEL | stop ZIEL | objects ZIEL | fire ZIEL OPFER [SALVEN] [shield] | hit ZIEL OPFER MUNITION [ANZAHL] | quit"),
         ["Cli.NeedsValue"] = ("{0} needs a value", "{0} braucht einen Wert"),
         ["Cli.UnknownOption"] = ("Unknown option {0}", "Unbekannte Option {0}"),
         ["Cli.NotFlserverCfg"] = ("{0} is not an FLServer.cfg", "{0} ist keine FLServer.cfg"),

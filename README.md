@@ -74,6 +74,8 @@ git push origin v1.0.0
   Fleet. FLHook `beam` teleports in-space bots; docked bots are skipped. The preview identifies
   the admin endpoint and auto-launch setting. Changed/removed bots require a new preview.
   Command results appear in both fleet activity and the admin console.
+- **Chat:** choose the sending bots and the target: FLHook commands, group, local or system chat, or a real
+  player from the player list for a private message.
 - **Behaviour:** global movement, session cycles, automated chat and launch automation.
   Direct tabs separate Movement, Sessions and Chat automation. Changes apply to all running
   bots. Circle radius takes effect at the next launch;
@@ -132,7 +134,7 @@ FLTestClient --server 10.0.0.5 --password <PW> --count 10 --launch --circle 600:
 
 FLServer does not bind to `127.0.0.1`, so use the LAN address (default: the first local IPv4
 address). `--help` lists all options. Commands are read interactively or from `--commands FILE`
-(new lines are executed): `list`, `say TARGET TEXT`, `launch TARGET`, `reconnect TARGET`,
+(new lines are executed): `list`, `say TARGET TEXT`, `tell TARGET CLIENT TEXT` (private message to a client ID), `launch TARGET`, `reconnect TARGET`,
 `stop TARGET`, `quit` (TARGET = bot number or `all`).
 
 ## What the bots can do
@@ -148,6 +150,15 @@ address). `--help` lists all options. Commands are read interactively or from `-
 - **respawn:** 5 s after being destroyed, select the character again and dock at the last base
 - **session cycle:** log out cleanly after a random MIN..MAX s online, log in again after OFF s
 - **chat script:** every n s (±50 %) send a random line or FLHook command
+- **groups:** accept invitations 1-3 s after they arrive (`/i TestBot01` or the player list)
+- **chat answers:** answer players with a random line after 1-3 s, then pause for 3 s, always in the channel
+  of the message: private messages get a private answer, group messages an answer in the group. Both are
+  always answered, like messages that mention the bot's name; other local and system messages only with
+  the reply chance (default 30 %). Bots never answer each other (names made of the character prefix and a
+  number) and ignore universe chat.
+- **first contact (off by default):** one bot greets real players privately 5-15 s after they log in, and
+  writes to a random real player about every n s (±50 %). The bot can also invite the player to its group.
+  A player hears from a bot at most every 5 minutes; players online before the bots are not greeted.
 
 ## Known limits and pitfalls
 
@@ -156,12 +167,18 @@ address). `--help` lists all options. Commands are read interactively or from `-
   set `KickOnNoClientDll=no` in `dsacesrv.cfg`.
 - **FLHook DuplicateIPs:** all bots come from the same IP. Add your IP as an exception under
   `[DuplicateIPs]` in `flhook.ini` or set `Enable=no`.
+- **Server port:** DirectPlay moves FLServer to the next free port (2303, ...) when 2302 is taken at its
+  start, e.g. by a running Freelancer client. A bot that is not connected after 5 s asks ports 2302-2311
+  for a Freelancer server and logs the port that answers, or that none does.
 - **Player limit:** `MaxPlayers` in `FLServer.cfg` limits the number of bots.
 - Unknown packets have no known length; the rest of the DirectPlay message is dropped. In practice
   the server almost always sends one packet per message.
 - **No collision avoidance in circle flight:** the bot does not know the objects in the system.
   Launching from a dock is safe; a character saved in space may fly into a station or planet and is
   destroyed (then it respawns).
+- **FLHook chat:** FLHook can deliver player chat re-encoded as universe chat; the bots then read the channel from
+  the text colour (`HkCb_SendChat`) and the sender from the name header plus the player list. A server with
+  other chat colours gets no answers.
 - No real approach to docking rings, no combat, trading or jump gates.
 
 ## License

@@ -90,6 +90,30 @@ public sealed class GuiSettings
     /// <summary>Chat script, one line per message.</summary>
     public string ChatScript { get; set; } = string.Join(Environment.NewLine, "/ping", "/time", "/id");
 
+    /// <summary>Accept group invitations automatically.</summary>
+    public bool AutoJoinGroups { get; set; } = true;
+
+    /// <summary>Answer players in chat.</summary>
+    public bool ChatReplies { get; set; } = true;
+
+    /// <summary>Chance in percent to answer local or system chat without a mention.</summary>
+    public int ChannelReplyPercent { get; set; } = 30;
+
+    /// <summary>Answers, one per line; <c>{name}</c> stands for the sender.</summary>
+    public string ChatReplyLines { get; set; } = string.Join(Environment.NewLine, BotOptions.DefaultReplyLines);
+
+    /// <summary>One bot greets real players when they log in.</summary>
+    public bool GreetPlayers { get; set; }
+
+    /// <summary>Average time between two random contacts in seconds; 0 = off.</summary>
+    public double ApproachIntervalSeconds { get; set; }
+
+    /// <summary>The bot that contacts a player also invites the player to its group.</summary>
+    public bool InvitePlayers { get; set; }
+
+    /// <summary>Lines for greetings and random contacts, one per line; <c>{name}</c> stands for the player.</summary>
+    public string ContactLines { get; set; } = string.Join(Environment.NewLine, BotOptions.DefaultContactLines);
+
     /// <summary>Last target base for "Dock at base".</summary>
     public string DockTarget { get; set; } = "Li01_01_Base";
 

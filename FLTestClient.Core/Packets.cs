@@ -100,6 +100,8 @@ internal static class ServerOp
     /// position, quaternion as four bytes (FRpcServerCreateGuidedPacket).
     /// </summary>
     public const int CreateGuided = 0x37;
+    /// <summary>PLAYERLIST: kind (0 clear, 1 add, 2 remove), client ID, flag, u8 length with NUL, UTF-16 name.</summary>
+    public const int PlayerList = 0x52;
 }
 
 /// <summary>Opcodes of the COMMON channel that the bot uses.</summary>
@@ -111,6 +113,32 @@ internal static class CommonOp
     public const int FireWeapon = 0x02;
     /// <summary>CHATMSG: RDL text, target, sender.</summary>
     public const int ChatMsg = 0x05;
+}
+
+/// <summary>
+/// Types of the 8-byte records {type, player ID} on <see cref="ChatId.GroupControl"/>
+/// (ChatGroup_Send on the server, NnGroupControl::HandleInviteMessage on the client).
+/// </summary>
+internal static class GroupMessage
+{
+    /// <summary>Client to server: invite the player in the record; founds a group if there is none.</summary>
+    public const uint Invite = 0;
+    /// <summary>Client to server: accept the invitation of the player in the record.</summary>
+    public const uint Join = 2;
+    /// <summary>Server to client: the player in the record invites this client.</summary>
+    public const uint Invited = 4;
+    /// <summary>Server to client: joined the group of the player in the record.</summary>
+    public const uint Joined = 5;
+    /// <summary>Server to client: this client left the group or was removed from it.</summary>
+    public const uint RemovedFromGroup = 7;
+    /// <summary>Server to client: the invitation is no longer valid.</summary>
+    public const uint NotInvited = 0xd;
+    /// <summary>Server to client: already a member of that group.</summary>
+    public const uint AlreadyMember = 0xe;
+    /// <summary>Server to client: blocked by a running mission.</summary>
+    public const uint BlockedByMission = 0xf;
+    /// <summary>Server to client: the group already has 8 members.</summary>
+    public const uint GroupFull = 0x10;
 }
 
 /// <summary>Readable packet names for log output.</summary>

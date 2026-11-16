@@ -55,7 +55,8 @@ public sealed record EquipmentEntry(ushort Id, uint Archetype, string Hardpoint,
 /// <param name="From">Sender CHAT_ID (0x10000 = server/console, otherwise a client ID).</param>
 /// <param name="To">Receiver CHAT_ID.</param>
 /// <param name="Text">Plain text extracted from the RDL.</param>
-public sealed record ChatMessage(uint From, uint To, string Text);
+/// <param name="TextColor">Colour 0xRRGGBB of the text or null; with FLHook it shows the chat channel.</param>
+public sealed record ChatMessage(uint From, uint To, string Text, uint? TextColor = null);
 
 /// <summary>Immutable state of a bot at one point in time, safe to read from any thread.</summary>
 /// <param name="Index">Bot number.</param>
@@ -157,6 +158,60 @@ public sealed class BotOptions
 
     /// <summary>Lines of the chat script; a random one is sent per interval (text or FLHook command).</summary>
     public IReadOnlyList<string> ChatLines { get; set; } = Array.Empty<string>();
+
+    /// <summary>Accept group invitations automatically.</summary>
+    public bool AutoJoinGroups { get; set; } = true;
+
+    /// <summary>Answer players in chat with a random line of <see cref="ChatReplyLines"/>.</summary>
+    public bool ChatReplies { get; set; } = true;
+
+    /// <summary>
+    /// Chance in percent to answer a local or system message that does not mention the bot. Private and group
+    /// messages and mentions are always answered; the chance keeps a crowd of bots from all talking at once.
+    /// </summary>
+    public int ChannelReplyPercent { get; set; } = 30;
+
+    /// <summary>Answers to pick from; <c>{name}</c> stands for the sender.</summary>
+    public IReadOnlyList<string> ChatReplyLines { get; set; } = DefaultReplyLines;
+
+    /// <summary>Answers used unless others are configured.</summary>
+    public static IReadOnlyList<string> DefaultReplyLines { get; } = new[]
+    {
+        "Hello {name}!",
+        "Copy that, {name}.",
+        "Sorry, I am only a test bot.",
+        "Anyone seen a cheap load of Cardamine around here?",
+        "Watch out, Rheinland patrol ahead.",
+        "My shields are at 100 %, how about yours?",
+        "Trade lane is clear.",
+        "Does anybody know the way to Manhattan?",
+        "Beep boop.",
+        "Interesting, tell me more, {name}.",
+        "I will be right back, docking first.",
+        "Roger, {name}, standing by.",
+    };
+
+    /// <summary>One bot greets real players with a private message when they log in.</summary>
+    public bool GreetPlayers { get; set; }
+
+    /// <summary>Average time between two random private messages to real players, in seconds; 0 = off.</summary>
+    public double ApproachIntervalSeconds { get; set; }
+
+    /// <summary>The bot that contacts a player also invites the player to its group.</summary>
+    public bool InvitePlayers { get; set; }
+
+    /// <summary>Lines for greetings and random contacts; <c>{name}</c> stands for the player.</summary>
+    public IReadOnlyList<string> ContactLines { get; set; } = DefaultContactLines;
+
+    /// <summary>Contact lines used unless others are configured.</summary>
+    public static IReadOnlyList<string> DefaultContactLines { get; } = new[]
+    {
+        "Hi {name}, good to see you!",
+        "Hey {name}, anything going on around here?",
+        "{name}, do you know a good trade route?",
+        "Greetings {name}, need a wingman?",
+        "Hello {name}, I am a test bot. Say something!",
+    };
 }
 
 /// <summary>
@@ -190,6 +245,16 @@ public sealed class Bot : IDisposable
     private double cycleLogoutAt = -1;
     private double respawnAt = -1;
     private double nextChatAt = -1;
+    private double joinAt = -1;
+    private uint joinInviter;
+    private double replyAt = -1;
+    private double nextReplyAllowedAt;
+    private uint replyTarget;
+    private string replyText = "";
+    private readonly Dictionary<uint, string> players = new();
+    private Task<IReadOnlyList<int>>? portSearch;
+    private bool portSearchStarted;
+    private double connectStartedAt;
     private Vector3 circleCenter, circleU, circleV, departureDirection;
     private double circleRadius, circleAngle, lastMoveTime, departureLeft;
     // Last position of every object the server forwarded an UPDATEOBJECT for (other players' ships).
@@ -290,6 +355,12 @@ public sealed class Bot : IDisposable
         stopping = false;
         State = BotState.Connecting;
         createAttempted = false;
+        joinAt = -1;
+        replyAt = -1;
+        portSearch = null;
+        portSearchStarted = false;
+        connectStartedAt = Now;
+        players.Clear();
         Log(LogLevel.Info, "Bot.Connecting", opt.Host, opt.Port, Account);
         net.Connect(opt.Host, opt.Port, opt.Password);
     }
@@ -323,6 +394,7 @@ public sealed class Bot : IDisposable
         }
         while (net.Events.TryDequeue(out var ev))
             HandleNetEvent(ev);
+        ReportPortSearch();
 
         double now = Now;
         if (net.Connected && !pingOutstanding && now - lastPing >= 1.0)
@@ -362,6 +434,58 @@ public sealed class Bot : IDisposable
         bool active = State is BotState.InBase or BotState.InSpace;
         TickSessionCycle(now, active);
         TickChatScript(now, active);
+        TickGroupJoin(now, active);
+        TickChatReply(now, active);
+    }
+
+    // After a failed connection: tells where the server really listens. A server that answers on the
+    // configured port refused for another reason, so there is nothing to add to the HRESULT.
+    private void ReportPortSearch()
+    {
+        // DirectPlay keeps trying for about a minute before it reports a failure, while a server that is
+        // there answers within a second: look for it as soon as the connection is overdue.
+        if (State == BotState.Connecting && Now - connectStartedAt >= ConnectOverdueSeconds)
+            StartPortSearch();
+        if (portSearch is not { IsCompleted: true } search)
+            return;
+        portSearch = null;
+        if (State is not (BotState.Connecting or BotState.Failed) || !search.IsCompletedSuccessfully)
+            return;
+        var ports = search.Result;
+        if (ports.Count == 0)
+            Log(LogLevel.Error, "Bot.NoServerFound", opt.Host, ServerPortFinder.FirstPort, ServerPortFinder.LastPort);
+        else if (!ports.Contains(opt.Port))
+            Log(LogLevel.Error, "Bot.ServerOnOtherPort", opt.Host, string.Join(", ", ports), opt.Port);
+    }
+
+    private const double ConnectOverdueSeconds = 5;
+
+    // Once per connection attempt, and not for an attempt the user cancelled.
+    private void StartPortSearch()
+    {
+        if (portSearchStarted || stopping)
+            return;
+        portSearchStarted = true;
+        portSearch = ServerPortFinder.FindAsync(opt.Host);
+    }
+
+    // Accepts a pending invitation after a short "reaction time"; a bot that left the game meanwhile drops it.
+    private void TickGroupJoin(double now, bool active)
+    {
+        if (joinAt < 0 || now < joinAt)
+            return;
+        joinAt = -1;
+        if (active && opt.AutoJoinGroups)
+            SendGroupControl(GroupMessage.Join, joinInviter);
+    }
+
+    private void TickChatReply(double now, bool active)
+    {
+        if (replyAt < 0 || now < replyAt)
+            return;
+        replyAt = -1;
+        if (active && opt.ChatReplies)
+            Say(replyText, replyTarget);
     }
 
     // Session cycle: after a random time online, log out cleanly and come back after OfflineSeconds.
@@ -475,7 +599,10 @@ public sealed class Bot : IDisposable
                 if (ev.Result == DP8.DPNERR_INVALIDPASSWORD)
                     Log(LogLevel.Error, "Bot.WrongPassword");
                 else
+                {
                     Log(LogLevel.Error, "Bot.ConnectFailed", ev.Result);
+                    StartPortSearch();
+                }
                 State = BotState.Failed;
                 break;
             case NetEventKind.Disconnected:
@@ -627,6 +754,9 @@ public sealed class Bot : IDisposable
                 case ServerOp.CreateGuided:
                     OnCreateGuided(r);
                     return true;
+                case ServerOp.PlayerList:
+                    OnPlayerList(r);
+                    return true;
                 case ServerOp.DestroyObject:
                 {
                     uint obj = r.U32();
@@ -669,9 +799,18 @@ public sealed class Bot : IDisposable
                     byte[] rdl = r.Bytes(size);
                     uint target = r.U32();
                     uint from = r.U32();
+                    if (from == ChatId.GroupControl)
+                    {
+                        OnGroupControl(rdl);
+                        return true;
+                    }
                     string text = Rdl.ExtractText(rdl);
                     if (text.Trim().Length > 0)
-                        ChatReceived?.Invoke(this, new ChatMessage(from, target, text));
+                    {
+                        var message = new ChatMessage(from, target, text, Rdl.LastColor(rdl));
+                        ChatReceived?.Invoke(this, message);
+                        ScheduleChatReply(message);
+                    }
                     return true;
                 }
             }
@@ -1273,6 +1412,117 @@ public sealed class Bot : IDisposable
         var w = new PacketWriter(Ch.Common, CommonOp.ChatMsg).U32((uint)rdl.Length).Bytes(rdl).U32(target).U32(0);
         Send(w);
         Log(LogLevel.Event, "Bot.Says", text);
+    }
+
+    // Answers come 1-3 s later like from a typing player. At most one is pending, and a pause after it keeps
+    // a chatty player from turning the bot into a spammer.
+    private void ScheduleChatReply(ChatMessage message)
+    {
+        var lines = opt.ChatReplyLines;
+        double now = Now;
+        if (!opt.ChatReplies || lines.Count == 0 || replyAt >= 0 || now < nextReplyAllowedAt)
+            return;
+        var plan = ChatReply.Plan(message, CharName, opt.NamePrefix, FindPlayer);
+        if (plan == null || (!plan.AlwaysAnswer && random.Next(100) >= opt.ChannelReplyPercent))
+            return;
+        replyTarget = plan.Target;
+        replyText = lines[random.Next(lines.Count)].Replace("{name}", plan.SenderName);
+        replyAt = now + 1 + random.NextDouble() * 2;
+        nextReplyAllowedAt = replyAt + ReplyPauseSeconds;
+    }
+
+    private const double ReplyPauseSeconds = 3;
+
+    private void OnPlayerList(PacketReader reader)
+    {
+        const uint clear = 0, add = 1, remove = 2;
+        uint kind = reader.U32();
+        uint clientId = reader.U32();
+        reader.U8();
+        string name = reader.Wide(reader.U8()).TrimEnd('\0');
+        if (kind == clear)
+            players.Clear();
+        else if (kind == add)
+            players[clientId] = name;
+        else if (kind == remove)
+            players.Remove(clientId);
+    }
+
+    private uint? FindPlayer(string name)
+    {
+        foreach (var (clientId, playerName) in players)
+        {
+            if (playerName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                return clientId;
+        }
+        return null;
+    }
+
+    private string PlayerName(uint clientId) => players.TryGetValue(clientId, out var name) ? name : $"#{clientId}";
+
+    /// <summary>True while the character is in a base or in space and can chat.</summary>
+    public bool IsInGame => State is BotState.InBase or BotState.InSpace;
+
+    /// <summary>Names of all players in the player list, bots included.</summary>
+    public IEnumerable<string> PlayerNames => players.Values.Where(name => name.Length > 0);
+
+    /// <summary>Writes to a player on the bot's own initiative.</summary>
+    /// <param name="name">Character name of the player.</param>
+    /// <param name="text">Private message; <c>{name}</c> stands for the player.</param>
+    /// <param name="invite">Also invite the player to the bot's group.</param>
+    /// <returns>False if the player is not in the bot's player list.</returns>
+    public bool ContactPlayer(string name, string text, bool invite)
+    {
+        if (FindPlayer(name) is not uint clientId)
+            return false;
+        Say(text.Replace("{name}", name), clientId);
+        if (invite)
+        {
+            Log(LogLevel.Event, "Bot.GroupInviting", name);
+            SendGroupControl(GroupMessage.Invite, clientId);
+        }
+        return true;
+    }
+
+    // ---------------------------------------------------------------- group
+
+    private void OnGroupControl(byte[] record)
+    {
+        if (record.Length != 8)
+            return;
+        uint type = BitConverter.ToUInt32(record, 0);
+        uint player = BitConverter.ToUInt32(record, 4);
+        switch (type)
+        {
+            case GroupMessage.Invited:
+                Log(LogLevel.Event, "Bot.GroupInvited", PlayerName(player));
+                if (opt.AutoJoinGroups)
+                {
+                    joinInviter = player;
+                    joinAt = Now + 1 + random.NextDouble() * 2;
+                }
+                break;
+            case GroupMessage.Joined:
+                Log(LogLevel.Success, "Bot.GroupJoined", PlayerName(player));
+                break;
+            case GroupMessage.RemovedFromGroup:
+                Log(LogLevel.Event, "Bot.GroupLeft");
+                break;
+            case GroupMessage.NotInvited:
+            case GroupMessage.AlreadyMember:
+            case GroupMessage.BlockedByMission:
+            case GroupMessage.GroupFull:
+                Log(LogLevel.Error, "Bot.GroupJoinFailed", type);
+                break;
+        }
+    }
+
+    // FNnGroupWireMessage: {type, player ID} as the payload of a chat message, like NnGroupSendWireMessage.
+    private void SendGroupControl(uint type, uint player)
+    {
+        var writer = new PacketWriter(Ch.Common, CommonOp.ChatMsg)
+            .U32(8).U32(type).U32(player).U32(ChatId.GroupControl).U32(0);
+        Send(writer);
     }
 
     private void Send(PacketWriter w)
