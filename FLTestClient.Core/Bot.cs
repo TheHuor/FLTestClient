@@ -23,6 +23,8 @@ public enum BotState
     Launching,
     /// <summary>In space.</summary>
     InSpace,
+    /// <summary>System switch through a jump gate or jump hole in progress (SYSTEM_SWITCH_OUT to JUMPINCOMPLETE).</summary>
+    Jumping,
     /// <summary>Disconnected cleanly.</summary>
     Disconnected,
     /// <summary>Connection rejected or dropped by the server.</summary>
@@ -219,7 +221,8 @@ public sealed class BotOptions
 /// <para>The flow follows the original client (login_mgr, menu_universe_base, space_state):
 /// connect, CONNECTRESPONSE, LOGIN, LOGINRESPONSE, REQUESTCHARINFO, CHARACTERINFO, optionally CREATENEWCHAR,
 /// SELECTCHARACTER, CHARSELECTVERIFIED, ENTERBASE; to launch EXITBASE, REQUESTCREATESHIP,
-/// REQUESTCREATESHIPRESP, REQUESTLAUNCH, LAUNCH, LAUNCHCOMPLETE.</para>
+/// REQUESTCREATESHIPRESP, REQUESTLAUNCH, LAUNCH, LAUNCHCOMPLETE; a system switch is SYSTEM_SWITCH_OUT,
+/// SYSTEM_SWITCH_OUT_COMPLETE, SYSTEM_SWITCH_IN, JUMPINCOMPLETE.</para>
 /// <para>The class is not thread-safe: all methods must run on the same thread, normally the network thread
 /// of <see cref="BotManager"/>. Other threads use <see cref="Snapshot"/>.</para>
 /// </remarks>
@@ -264,6 +267,11 @@ public sealed class Bot : IDisposable
     private int volleysLeft;
     private bool fireAtShield, rangeWarned;
     private readonly List<(double Due, uint Target, uint Munition, ushort SubObject)> pendingHits = new();
+    // System switch: destination system, when the tunnel ends (SYSTEM_SWITCH_OUT_COMPLETE), when the jump-in
+    // ends (JUMPINCOMPLETE) and since when the bot waits for SYSTEM_SWITCH_IN.
+    private uint jumpDestination;
+    private double switchOutAt = -1, jumpInAt = -1, switchInWaitSince = -1;
+    private bool switchInWarned;
 
     /// <summary>Bot number; determines account and character name.</summary>
     public int Index { get; }
@@ -420,6 +428,8 @@ public sealed class Bot : IDisposable
         }
         if (State == BotState.InSpace)
             TickFiring(now);
+        if (State == BotState.Jumping)
+            TickJump(now);
 
         bool active = State is BotState.InBase or BotState.InSpace;
         TickSessionCycle(now, active);
@@ -701,6 +711,26 @@ public sealed class Bot : IDisposable
                         OnLand(baseId);
                     return true;
                 }
+                case ServerOp.SystemSwitchOut:
+                {
+                    // RandomJumps appends the destination system only to a packet that ends the message; its
+                    // client hook takes it when exactly 12 bytes are left for the packet.
+                    bool withSystem = r.Remaining == 12;
+                    uint ship = r.U32();
+                    uint gate = r.U32();
+                    uint system = withSystem ? r.U32() : 0;
+                    OnSystemSwitchOut(ship, gate, system);
+                    return true;
+                }
+                case ServerOp.SystemSwitchIn:
+                {
+                    uint obj = r.U32();
+                    uint typeBits = r.U32();
+                    var position = r.Vec();
+                    var rotation = r.Quat();
+                    OnSystemSwitchIn(obj, typeBits, position, rotation);
+                    return true;
+                }
                 case ServerOp.GfDestroyNewsBroadcast:
                 {
                     // The retail client reads through null for an unknown base ID (FUN_0043a750).
@@ -732,8 +762,9 @@ public sealed class Bot : IDisposable
                     uint obj = r.U32();
                     r.U8();
                     knownObjects.Remove(obj);
-                    if (obj == ShipId && State == BotState.InSpace)
+                    if (obj == ShipId && State is BotState.InSpace or BotState.Jumping)
                     {
+                        switchOutAt = jumpInAt = switchInWaitSince = -1;
                         // Like a player after death: respawn at the last base a few seconds later.
                         Log(LogLevel.Error, "Bot.ShipDestroyed");
                         State = BotState.Launching;
@@ -1019,6 +1050,102 @@ public sealed class Bot : IDisposable
     {
         Log(LogLevel.Event, "Bot.Landed", NameOf(baseId));
         EnterBase(baseId);
+    }
+
+    // ---------------------------------------------------------------- system switch
+
+    // Time in the jump tunnel before SYSTEM_SWITCH_OUT_COMPLETE, and time of the jump-in before JUMPINCOMPLETE.
+    // The real client plays the gate animation and the tunnel first; the server waits for the client either way.
+    private const double JumpTunnelSeconds = 2.0;
+    private const double JumpInSeconds = 1.0;
+    // Warn when the server does not answer SYSTEM_SWITCH_OUT_COMPLETE with SYSTEM_SWITCH_IN in this time.
+    private const double SwitchInTimeoutSeconds = 15.0;
+    // Type bits of jump gates (0x40) and jump holes (0x800): arrival with a jump-in instead of an airlock.
+    private const uint JumpObjectTypes = 0x40 | 0x800;
+
+    // IClientImpl::SendServerSystemSwitchOut: the server sends this for every ship that jumps out, also for a
+    // jump the server forces (pub::Player::InstantDock to a jump object, FLHook beam into another system). The
+    // client plays the jump out, takes the destination system of the gate (CSolar DestSystem, or the system
+    // RandomJumps appended) and after the tunnel sends IServer::SystemSwitchOutComplete(ship) (space_state
+    // ProcessPendingSystemSwitch). Ships of other players simply leave the system.
+    private void OnSystemSwitchOut(uint ship, uint gate, uint packetSystem)
+    {
+        if (ship != ShipId || ShipId == 0)
+        {
+            knownObjects.Remove(ship);
+            return;
+        }
+        jumpDestination = packetSystem != 0 ? packetSystem : opt.Universe?.JumpDestination(gate) ?? 0;
+        if (jumpDestination == 0)
+            Log(LogLevel.Error, "Bot.JumpDestinationUnknown", NameOf(gate));
+        Log(LogLevel.Event, "Bot.JumpOut", NameOf(gate), jumpDestination == 0 ? "?" : NameOf(jumpDestination),
+            packetSystem != 0 ? Texts.Get("Bot.JumpOutFromServer") : "");
+        State = BotState.Jumping;
+        volleysLeft = 0;
+        pendingHits.Clear();
+        switchOutAt = Now + JumpTunnelSeconds;
+        jumpInAt = -1;
+        switchInWaitSince = -1;
+        switchInWarned = false;
+    }
+
+    // IClientImpl::SendServerSystemSwitchIn: the server has put the ship into the destination system at the
+    // arrival object. For a jump gate or hole the client plays the jump-in and then reports JumpInComplete with
+    // the id of the system it is in (LaunchAction arrival -> FClientShipGameobj::slot_74); an airlock arrival
+    // (CShip::airlock_in) only places the ship and reports nothing.
+    private void OnSystemSwitchIn(uint obj, uint typeBits, Vector3 position, Quaternion rotation)
+    {
+        if (obj != ShipId || ShipId == 0)
+            return;
+        Position = position;
+        orientation = rotation;
+        if (jumpDestination != 0)
+            SystemId = jumpDestination;
+        BaseId = 0;
+        switchOutAt = -1;
+        switchInWaitSince = -1;
+        knownObjects.Clear();
+        Log(LogLevel.Info, "Bot.JumpIn", SystemId == 0 ? "?" : NameOf(SystemId), position.X, position.Y, position.Z);
+        if ((typeBits & JumpObjectTypes) != 0)
+        {
+            State = BotState.Jumping;
+            jumpInAt = Now + JumpInSeconds;
+        }
+        else
+            ArriveInSpace();
+    }
+
+    private void TickJump(double now)
+    {
+        if (switchOutAt >= 0 && now >= switchOutAt)
+        {
+            switchOutAt = -1;
+            Send(new PacketWriter(Ch.Client, ClientOp.SystemSwitchOutComplete).U32(ShipId));
+            Log(LogLevel.Info, "Bot.JumpOutComplete");
+            switchInWaitSince = now;
+        }
+        if (switchInWaitSince >= 0 && !switchInWarned && now - switchInWaitSince >= SwitchInTimeoutSeconds)
+        {
+            switchInWarned = true;
+            Log(LogLevel.Error, "Bot.JumpInMissing", SwitchInTimeoutSeconds);
+        }
+        if (jumpInAt >= 0 && now >= jumpInAt)
+        {
+            jumpInAt = -1;
+            Send(new PacketWriter(Ch.Client, ClientOp.JumpInComplete).U32(SystemId).U32(ShipId));
+            Log(LogLevel.Info, "Bot.JumpInComplete");
+            ArriveInSpace();
+        }
+    }
+
+    // End of a system switch: in space again, the circle flight starts over from the arrival point.
+    private void ArriveInSpace()
+    {
+        State = BotState.InSpace;
+        lastUpdate = 0;
+        lastMoveTime = Now;
+        Log(LogLevel.Success, "Bot.JumpArrived", SystemId == 0 ? "?" : NameOf(SystemId));
+        PlanCircle();
     }
 
     private void SendObjUpdate(double elapsed)
